@@ -58,10 +58,12 @@ The package was independently installed from
 The installed executable reported `sqlite-sync-guard 0.1.0`; `--help` shows
 the documented safety boundary and exit codes.
 
-Live baseline checks confirmed the GitHub releases API is empty. The deployed
-site must be allowed to receive this static-docs commit before its live shell
-and CTAs can be rechecked; this worker does not alter deployment infrastructure
-or publish GitHub releases.
+Live baseline checks confirmed the GitHub releases API is empty. Commit
+`2f2e4f8` was pushed to `main` for standard static-docs deployment, but the
+live URL still returned the previous page after a 60-second poll window. Its
+live shell and CTAs must be rechecked when the deployment system picks up the
+commit; this worker does not alter deployment infrastructure or publish GitHub
+releases.
 
 ## Remaining factory actions
 
