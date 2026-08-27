@@ -1,0 +1,9 @@
+{
+  "name": "SQLite Sync Guard",
+  "short_name": "Sync Guard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3e9d5",
+  "theme_color": "#f3e9d5",
+  "icons": []
+}

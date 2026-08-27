@@ -69,7 +69,8 @@ reveals are removed; state changes remain immediate and fully visible.
 
 ## Asset plan and provenance
 
-- `site/public/guarded-handoff.webp`: original generated hero illustration,
+- `site/public/guarded-handoff.webp` and its 600px responsive derivative:
+  original generated hero illustration,
   created for this product with the factory image deployment, then locally
   converted to WebP under 300 KB. Prompt: “Editorial risograph collage on warm
   cream paper; open sync folder as a cut-paper tray, dark teal SQLite database

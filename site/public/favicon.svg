@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SQLite Sync Guard">
+  <rect width="64" height="64" rx="12" fill="#f3e9d5"/>
+  <path d="M13 18c0-6 38-6 38 0v27c0 6-38 6-38 0z" fill="#0b5b53" stroke="#182922" stroke-width="3"/>
+  <path d="M13 18c0 6 38 6 38 0M13 31c0 6 38 6 38 0" fill="none" stroke="#f3e9d5" stroke-width="3"/>
+  <path d="M38 35h18v20H38z" fill="#982f29" stroke="#182922" stroke-width="3"/><path d="M42 35v-5a5 5 0 0110 0v5" fill="none" stroke="#182922" stroke-width="3"/>
+</svg>
