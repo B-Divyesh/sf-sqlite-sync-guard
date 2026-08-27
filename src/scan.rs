@@ -219,10 +219,8 @@ fn sidecar_base(path: &Path) -> Option<(PathBuf, SidecarKind)> {
         (base, SidecarKind::Wal)
     } else if let Some(base) = name.strip_suffix("-shm") {
         (base, SidecarKind::Shm)
-    } else if let Some(base) = name.strip_suffix("-journal") {
-        (base, SidecarKind::Journal)
     } else {
-        return None;
+        (name.strip_suffix("-journal")?, SidecarKind::Journal)
     };
     Some((path.with_file_name(base), kind))
 }
@@ -236,6 +234,7 @@ fn display_relative(root: &Path, path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rusqlite::Connection;
     use std::fs;
     use tempfile::tempdir;
 
@@ -267,5 +266,38 @@ mod tests {
         let report = scan_root(dir.path()).unwrap();
         assert!(report.safe);
         assert_eq!(report.database_count, 0);
+    }
+
+    #[test]
+    fn detects_real_wal_and_rollback_journal_fixtures() {
+        let dir = tempdir().unwrap();
+        let wal_path = dir.path().join("wal.db");
+        let wal = Connection::open(&wal_path).unwrap();
+        wal.query_row("PRAGMA journal_mode=WAL", [], |_| Ok(()))
+            .unwrap();
+        wal.execute("CREATE TABLE wal_data (id INTEGER)", [])
+            .unwrap();
+        wal.execute("INSERT INTO wal_data VALUES (1)", []).unwrap();
+
+        let rollback_path = dir.path().join("rollback.db");
+        let rollback = Connection::open(&rollback_path).unwrap();
+        rollback
+            .execute("CREATE TABLE rollback_data (id INTEGER)", [])
+            .unwrap();
+        rollback
+            .execute_batch("BEGIN IMMEDIATE; INSERT INTO rollback_data VALUES (1);")
+            .unwrap();
+
+        assert!(dir.path().join("wal.db-wal").exists());
+        assert!(dir.path().join("wal.db-shm").exists());
+        assert!(dir.path().join("rollback.db-journal").exists());
+        let report = scan_root(dir.path()).unwrap();
+        assert_eq!(report.database_count, 2);
+        assert_eq!(report.unsafe_count, 2);
+        assert!(report.database_sets.iter().all(|set| set.unsafe_to_copy));
+
+        rollback.execute_batch("ROLLBACK").unwrap();
+        drop(rollback);
+        drop(wal);
     }
 }

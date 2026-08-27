@@ -284,4 +284,35 @@ mod tests {
                 .contains("--force")
         );
     }
+
+    #[test]
+    fn exports_a_live_wal_database_with_a_consistent_snapshot() {
+        let dir = tempdir().unwrap();
+        let source_path = dir.path().join("live.db");
+        let source = Connection::open(&source_path).unwrap();
+        source
+            .query_row("PRAGMA journal_mode=WAL", [], |_| Ok(()))
+            .unwrap();
+        source
+            .execute("CREATE TABLE queue (value TEXT NOT NULL)", [])
+            .unwrap();
+        source
+            .execute("INSERT INTO queue VALUES ('written in WAL')", [])
+            .unwrap();
+        assert!(dir.path().join("live.db-wal").exists());
+
+        let result = export_database(&ExportOptions {
+            database: source_path,
+            output: dir.path().join("handoff"),
+            force: false,
+        })
+        .unwrap();
+        let backup = Connection::open(result.backup).unwrap();
+        let value: String = backup
+            .query_row("SELECT value FROM queue", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(value, "written in WAL");
+        assert_eq!(result.integrity_check, "ok");
+        drop(source);
+    }
 }
