@@ -1,0 +1,12 @@
+{
+  "slug": "sqlite-sync-guard",
+  "title": "SQLite Sync Guard",
+  "territory": "devtools-data",
+  "user": "A developer synchronizing folders between devices who needs an unambiguous warning and a safe export path before live SQLite/WAL files are copied or corrupted.",
+  "smallest_useful_product": "CLI scans a configured sync root for SQLite DB/WAL/SHM files, detects active locks, explains risk, produces a consistent SQLite backup plus manifest, and writes ignore rules for supported sync clients.",
+  "success_measure": "On a fixture set of WAL and rollback-journal databases, it detects 100% of unsafe live sets and its exported backup passes sqlite3 integrity_check after transfer.",
+  "artifact_class": "cli",
+  "monetization": "free",
+  "constraints": "Never alter a live database without an explicit command; use SQLite's supported backup mechanisms; document that it prevents unsafe copying rather than enabling concurrent writes.",
+  "state": "RESEARCHED"
+}
