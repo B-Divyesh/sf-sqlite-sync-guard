@@ -60,5 +60,33 @@ window.addEventListener("offline", updateNetworkState);
 updateNetworkState();
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
+  window.addEventListener("load", async () => {
+    try {
+      const updateToast = document.querySelector<HTMLElement>("[data-update-toast]");
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      let refreshing = false;
+
+      const showUpdate = (): void => {
+        if (registration.waiting && navigator.serviceWorker.controller && updateToast) updateToast.hidden = false;
+      };
+      registration.addEventListener("updatefound", () => {
+        const worker = registration.installing;
+        worker?.addEventListener("statechange", () => {
+          if (worker.state === "installed") showUpdate();
+        });
+      });
+      document.querySelector<HTMLButtonElement>("[data-apply-update]")?.addEventListener("click", () => {
+        registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+      });
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+      showUpdate();
+    } catch {
+      // The shell remains usable if a first visit begins offline.
+    }
+  });
 }

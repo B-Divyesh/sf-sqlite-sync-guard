@@ -11,10 +11,11 @@ across devices safe, merge profiles, or replace a replication system.
 
 ## Install
 
-Prebuilt binaries are published with each GitHub release. To build from source:
+Prebuilt binaries are not published yet. Install the current source from the
+public repository instead:
 
 ```sh
-cargo install --path .
+cargo install --git https://github.com/B-Divyesh/sf-sqlite-sync-guard
 ```
 
 SQLite is bundled into the binary; a system SQLite installation is not needed.

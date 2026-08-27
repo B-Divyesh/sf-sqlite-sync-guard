@@ -23,7 +23,7 @@
       <nav aria-label="Primary navigation">
         <a href="#proof">How it works</a>
         <a href="#commands">Commands</a>
-        <a class="nav-download" href="https://github.com/B-Divyesh/sf-sqlite-sync-guard/releases">Get the binary</a>
+        <a class="nav-download" href="#install">Install from source</a>
       </nav>
     </header>
 
@@ -33,11 +33,11 @@
           <p class="eyebrow"><span aria-hidden="true">●</span> Preflight for synced folders</p>
           <h1 id="hero-title">Don’t sync a database <em>mid-sentence.</em></h1>
           <p class="lede">Live SQLite, WAL, and SHM files are a set—not ordinary documents. Catch unsafe copies, then make one clean handoff artifact.</p>
-          <div class="install-strip" aria-label="Install command">
+          <div class="install-strip" id="install" aria-label="Install command">
             <code>cargo install --git https://github.com/B-Divyesh/sf-sqlite-sync-guard</code>
             <button class="copy-button" type="button" data-copy="cargo install --git https://github.com/B-Divyesh/sf-sqlite-sync-guard" aria-label="Copy install command">Copy</button>
           </div>
-          <p class="microcopy">Free, open source, no telemetry. Linux, macOS, and Windows.</p>
+          <p class="microcopy">Free, open source, no telemetry. Build from the public source on Linux, macOS, or Windows; prebuilt binaries are not published yet.</p>
         </div>
         <figure class="hero-art print-in">
           <img src="/guarded-handoff.webp" srcset="/guarded-handoff-600.webp 600w, /guarded-handoff.webp 1200w" sizes="(max-width: 860px) calc(100vw - 32px), 55vw" width="1200" height="800" alt="Risograph collage of loose database pages stopped at a sync-folder barrier while a tied backup parcel exits safely" fetchpriority="high" />
@@ -130,7 +130,7 @@
         <h2 id="final-title">Make the safe copy obvious.</h2>
         <p>One static binary. Bundled SQLite. No service, account, or network required.</p>
         <div class="cta-actions">
-          <a class="button primary" href="https://github.com/B-Divyesh/sf-sqlite-sync-guard/releases">Download latest release</a>
+          <a class="button primary" href="#install">Install from source</a>
           <a class="button secondary" href="https://github.com/B-Divyesh/sf-sqlite-sync-guard">Read the source</a>
         </div>
       </section>
@@ -142,5 +142,9 @@
       <p class="footer-note">Not affiliated with the SQLite project or sync-client vendors.</p>
     </footer>
     <div class="sr-only" aria-live="polite" data-copy-status></div>
+    <aside class="update-toast" data-update-toast hidden role="status" aria-live="polite">
+      <span>A new guide is ready.</span>
+      <button type="button" data-apply-update>Reload now</button>
+    </aside>
   </body>
 </html>

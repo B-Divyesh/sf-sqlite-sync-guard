@@ -1,50 +1,77 @@
-# Handoff — independent verification: FAIL
+# Handoff — SQLite Sync Guard repair
 
-Work order: `sqlite-sync-guard-verify-1`
+Work order: `sqlite-sync-guard-repair-1`
+Base reviewed: `f37c941c1ced1c490ac6b6cd4766d72adeb2e6a5`
+Completed: 2026-08-27
 
-Verified candidate: `2d1620ea53f4b4f6641f10699ea41e62f6cd4817`
+## What changed
 
-Live URL: `https://sqlite-sync-guard.sociobot.in/`
+- The service worker is now generated after Vite emits `dist/site`. Its cache
+  name is `sqlite-sync-guard-<16-char SHA-256>` where the digest covers every
+  precached release file and its bytes (excluding the generated worker and
+  deployment config). A content change therefore produces a new cache name.
+- The worker precaches the three document shells and static assets, uses
+  network-first navigation with a same-release cached fallback, cache-first
+  assets, deletes older SQLite Sync Guard caches on activation, and claims
+  clients. A waiting update is presented as an accessible “Reload now” toast;
+  the user action sends `SKIP_WAITING` before reload.
+- `site/test-pwa.mjs` is an exact regression: it creates two distinct release
+  directories, generates both workers, activates A, then replaces it with B.
+  While offline, the activated B worker serves the **Build B shell** and the A
+  cache is absent. `site/check-dist.mjs` independently asserts that the final
+  build's digest and generated cache identifier match.
+- GitHub's releases API returned `[]`, and no GitHub publishing credentials or
+  release CLI are present. In accordance with the library-publishing contract,
+  no release was fabricated or published. The site and README now truthfully
+  say that prebuilt binaries are not published and point to the usable,
+  copyable source install command:
 
-Date: 2026-08-27
+  ```sh
+  cargo install --git https://github.com/B-Divyesh/sf-sqlite-sync-guard
+  ```
 
-**FAIL** — all clean build, test, packaging, CLI safety workflow, live
-comparison, accessibility, privacy, security-header, mobile, keyboard, and
-offline-reload checks passed. Two P2 release defects remain:
+  There are no `/releases` download CTAs left.
+- The manifest now has standalone metadata, a version-query start URL, and
+  project-owned SVG icons declared for 192/512, including a maskable icon.
 
-1. The PWA has a fixed `sqlite-sync-guard-v1` cache name and cache-first
-   shell, so a service-worker update does not invalidate the previous shell.
-   A controlled update simulation from the exact production output kept serving
-   the prior title after the replacement worker was installed.
-2. The live “Get binary” and “Download latest release” CTAs lead to a GitHub
-   releases page with no releases or binary assets
-   (GitHub releases API returned `[]`).
+## Verification
 
-How verified:
+Ran from a fresh `npm ci` dependency install:
 
 ```sh
-npm ci
 npm test
 npm run build
 npm run check:site
 cargo clippy --all-targets -- -D warnings
-cargo package --locked
-npm audit --omit=dev
-cargo install --path target/package/sqlite-sync-guard-0.1.0 --root /tmp/consumer --locked
+cargo package --allow-dirty --locked
 ```
 
-The installed consumer CLI independently detected live WAL and rollback-journal
-fixtures, exported an integrity-checked backup from an open WAL database,
-preserved/idempotently wrote ignore rules, handled malformed and missing inputs
-with exit 1 JSON errors, refused overwrite without `--force`, and returned to
-safe after writer recovery.
+All passed. The final static build is 2.9 KB JavaScript and 11.3 KB CSS; both
+are within the static performance budgets. The PWA regression output was:
 
-The live HTML, JS, CSS, images, privacy/terms pages, manifest, favicon, and
-service worker byte-match the candidate build. Live browser tests found zero
-console/page errors and zero axe violations at home, privacy, and terms;
-desktop and 390px mobile keyboard/reduced-motion checks passed; Lighthouse
-mobile was 93 Performance / 100 Accessibility / 100 Best Practices / 100 SEO.
+```text
+PWA update regression passed: build 4ecc8e834e1af636 → 7ecdacc8307e613f serves Build B shell offline
+```
 
-See [verification.md](verification.md) for exact evidence, headers, payload
-sizes, limitations, and required remediation. No product source code was
-changed by the verifier.
+The package was independently installed from
+`target/package/sqlite-sync-guard-0.1.0` into a fresh temporary Cargo root.
+The installed executable reported `sqlite-sync-guard 0.1.0`; `--help` shows
+the documented safety boundary and exit codes.
+
+Live baseline checks confirmed the GitHub releases API is empty. The deployed
+site must be allowed to receive this static-docs commit before its live shell
+and CTAs can be rechecked; this worker does not alter deployment infrastructure
+or publish GitHub releases.
+
+## Remaining factory actions
+
+- Standard static-docs deployment should publish `dist/site` from this commit.
+  Re-run browser/axe/Lighthouse and an online A→B registration update after it
+  is live. The local regression verifies the same worker lifecycle and offline
+  cache replacement deterministically.
+- To offer downloads later, create a GitHub release with checked cross-platform
+  binary assets, then change the truthful source-install CTAs deliberately.
+  The ready-to-publish crate is produced by `cargo package --locked` after the
+  tree is committed.
+- Linux was the only runtime available. Existing CI continues to cover the
+  Rust build on Linux, macOS, and Windows.

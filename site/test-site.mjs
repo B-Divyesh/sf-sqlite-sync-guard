@@ -11,6 +11,8 @@ const checks = [
   [/<h1[\s>]/g, "exactly one h1", 1],
   [/<img[^>]+alt="[^"]+"/, "meaningful hero alt"],
   [/class="skip-link"/, "skip link"],
+  [/id="install"/, "usable source install target"],
+  [/Install from source/, "truthful install CTA"],
   [/:focus-visible/, "visible focus rule", undefined, css],
   [/prefers-reduced-motion/, "reduced motion rule", undefined, css]
 ];
@@ -20,6 +22,9 @@ for (const [pattern, label, count, source = html] of checks) {
   if (!matches || (count !== undefined && matches.length !== count)) {
     throw new Error(`Site check failed: ${label}`);
   }
+}
+if (/\/releases(?:["'])?/.test(html) || /Download latest release/.test(html)) {
+  throw new Error("Site must not claim unavailable release binaries");
 }
 if (image.size > 300 * 1024) throw new Error(`Hero exceeds 300 KB: ${image.size}`);
 if (mobileImage.size >= image.size) throw new Error("Mobile hero variant is not smaller");

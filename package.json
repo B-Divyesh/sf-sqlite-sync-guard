@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "vite site --host 0.0.0.0",
     "test": "cargo test --all-targets && cargo test --doc && npm run test:site",
-    "test:site": "node site/test-site.mjs",
+    "test:site": "node site/test-site.mjs && node site/test-pwa.mjs",
     "build": "npm run build:cli && npm run build:site",
     "build:cli": "cargo build --release --locked",
-    "build:site": "vite build --config vite.config.js",
+    "build:site": "vite build --config vite.config.js && node site/pwa-build.mjs",
     "check:site": "node site/check-dist.mjs"
   },
   "devDependencies": {
