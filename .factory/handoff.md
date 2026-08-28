@@ -1,93 +1,48 @@
-# Handoff — perfection loop polish 3
+# Handoff — adversarial first-read review 4
 
-Work order: sqlite-sync-guard-polish-3
-Product repair: 7248574c07ca2a00eeda7e83411abc1bbfc779b2
-Base reviewed: e58a0a792b8593ecd919ae5aa5d3d5720c71b78f
-Live URL: https://sqlite-sync-guard.sociobot.in
-Static deployment: 2a7130d5-3836-438d-b74f-7d8f4eeca85d
+- Work order: `sqlite-sync-guard-review-4`
+- Reviewed commit: `0d64fa8ca0c7ccf88fa0cb2d1a26c54b3e03f5f7`
+- Live URL: <https://sqlite-sync-guard.sociobot.in>
 
 ## Delivered
 
-- Fixed all blocking and minor findings from review 1, review 2, and review 3.
-- Kept the risograph guarded-handoff identity, while correcting the warning
-  wording to say the tool warns rather than prevents.
-- Made /?demo=1 a one-click entrance to the isolated banner route. Reset and
-  Start for real delete only demo:sqlite-sync-guard: storage.
-- Exposed the complete normalized output of the real CLI demo in a visible
-  Read demo transcript disclosure. The SVG, text file, and browser transcript
-  are generated together from sqlite-sync-guard demo.
-- Repaired Home, Start for real, Commands, Back, and Forward focus behavior.
-  Focus is announced without destroying the browser-restored scroll position.
-- Expanded claims from 14 to 18. New proof covers active lock detection, WAL
-  committed-only transfer consistency, independent integrity and manifest
-  fields, real Resilio writes, exact sidecars, JSON errors, dev server, and
-  crate packaging.
-- Rewrote README manifest language, the contextless usage heading, deployment
-  instructions, and the catalog line. Added automated copy-to-claim mapping.
+- Wrote `.factory/review-4.md` with a **FAIL** verdict, complete first-read and
+  copy audits, all registered claim results, full historical finding
+  verification, structure/accessibility checks, and missed-leverage review.
+- Recorded two fresh cold-view screenshots and the live home response under
+  `.factory/evidence/review-4/`.
+- Did not modify product code.
 
 ## Verification
 
-Fresh clean clone: /tmp/sqlite-sync-guard-polish3-Sy2jOH/repo at the repair
-commit. All commands exited zero:
+A fresh clone at `/tmp/sqlite-sync-guard-review4-ocMzB3/repo` resolved to the
+reviewed SHA. `npm ci` succeeded. All 18 commands in `.factory/claims.json`
+were run individually and passed. The clean clone also passed:
 
-    npm ci
-    npm run test:claims
-    npm test
-    npm run check
-    npm run build
-    npm run check:site
-    npm run test:browser
-    cargo package --locked
+```sh
+npm test
+npm run check
+npm run build
+npm run check:site
+```
 
-The 18 independently runnable claim tags all passed:
+Live Chromium checks covered 390 × 844 and 1440 × 900 cold views, the one-click
+demo, reset isolation, Start for real, offline reload, route focus and history,
+all public routes, the designed 404, link crawling, console/network/cookie
+inspection, reduced motion, touch targets, and axe-core on every route.
 
-    demo-recording, demo-isolation, unsafe-detection, active-lock-detection,
-    exit-codes-json, live-consistent-transfer, verified-transfer, ignore-rules,
-    scan-read-only, offline-demo, no-telemetry, demo-reset, mit-source,
-    bundled-sqlite, help-output, build-output, dev-server, package-output
+The CLI demo was also run from a new empty temporary current directory. It
+created only a separate `/tmp/sqlite-sync-guard-demo-*` workspace and left the
+current directory empty.
 
-Claim fixtures begin from the demo command and operate only under its reported
-temporary workspace. The live-WAL test uses a separate writer with one
-committed and one uncommitted row. The backup contains only the committed row.
-The lock test uses a second process holding SQLite's database lock range.
+## Remaining findings
 
-The static deployment used the work-order configuration:
+- `F-3-4` is BLOCKING again: the README's claims-completeness statement remains
+  false.
+- `F-4-1`: the `/?demo=1` behavior has no exact claims entry.
+- `F-4-2`: the current-folder no-read privacy promise is not registered or
+  fully observed by its assigned test.
+- `F-4-3`: the manifest source-path privacy disclosure is not registered and
+  `manifest.source` is not asserted.
 
-    npm ci
-    npm run build:site
-    /opt/fleet/lib/deploy-static.sh sqlite-sync-guard /work/repo/dist/site
-
-Cold live verification passed for /, /demo/, /privacy/, /terms/, and a missing
-route. HTTP results were 200, 200, 200, 200, and 404. The live Playwright
-check found zero axe WCAG A/AA/2.1-AA violations, zero console errors, no
-external requests, no cookies, working offline demo reload, correct route
-focus, preserved Back scroll, and no 390px horizontal overflow.
-
-The worker verify-url.sh check recorded a 676 ms live load, title, lang=en,
-one h1, one main landmark, no missing image alt text, no unlabeled button, and
-no console errors in .factory/evidence/live/verify-url/verify.json.
-
-Mobile Lighthouse on the live URL scored Performance 100, Accessibility 100,
-Best Practices 100, and SEO 100. FCP and LCP were 0.5 s, CLS 0, and TBT 0 ms.
-
-Evidence:
-
-- .factory/evidence/home-mobile-390.png
-- .factory/evidence/demo-desktop.png
-- .factory/evidence/live/polish-3-home-desktop.png
-- .factory/evidence/live/polish-3-home-mobile-390.png
-- .factory/evidence/live/polish-3-demo-desktop.png
-- .factory/evidence/live/verify-url/verify.json
-
-## Run and release
-
-Use npm run dev for local documentation preview. Use cargo run -- demo for the
-isolated CLI demo. Build with npm run build; publish dist/site with its
-staticwebapp.config.json. The factory owns registry credentials; the
-ready-to-publish crate command is cargo package --locked.
-
-## Known gaps
-
-None for the accepted scope. Linux runtime verification includes the
-cross-process lock probe. macOS and Windows lock paths remain compile-covered
-by CI but are not claimed as separately runtime-verified behavior.
+See `.factory/review-4.md` for exact quotes and concrete fixes.
