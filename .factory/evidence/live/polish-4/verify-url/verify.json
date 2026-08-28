@@ -1,0 +1,14 @@
+{
+  "url": "https://sqlite-sync-guard.sociobot.in",
+  "loadMs": 814,
+  "errors": [],
+  "a11y": {
+    "title": "SQLite Sync Guard — check SQLite files before sync",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 2092
+  }
+}

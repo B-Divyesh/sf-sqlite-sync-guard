@@ -9,6 +9,7 @@
     "test:claims": "node site/test-claims.mjs",
     "test:site": "node site/test-site.mjs && node site/test-pwa.mjs",
     "test:browser": "node site/test-browser.mjs",
+    "verify:live": "node site/verify-live.mjs",
     "check": "tsc --noEmit && cargo fmt --check && cargo clippy --all-targets -- -D warnings",
     "build": "npm run build:cli && npm run build:site",
     "build:cli": "cargo build --release --locked",

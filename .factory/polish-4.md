@@ -83,5 +83,26 @@ older report.
 
 ## Deployment evidence
 
-To be filled with the repair commit, deployment result, and post-deploy cold
-verification after the clean-clone gate passes.
+- Product repair/deployed commit:
+  `7e6846c8f768bd8ca9cf4e1d73db2a48c11d52b1`.
+- The work-order command built `dist/site` and deployed successfully as Azure
+  deployment `db2ae2d0-052b-44c6-b81a-005721a1741e`; the custom HTTPS URL
+  returned 200 immediately.
+- `.factory/evidence/live/polish-4/live-audit.json`: cold first screen,
+  `/?demo=1`, banner/reset/start, storage separation, offline reload, five
+  routes, route focus, 404, eight links, metadata, cookies, requests, console,
+  and axe. All assertions passed at 2026-08-28T15:08:07Z.
+- `.factory/evidence/live/polish-4/axe.json`: axe-core 4.11.0 reported zero
+  violations on `/`, `/demo/`, `/privacy/`, and `/terms/`.
+- `.factory/evidence/live/polish-4/lighthouse.json`: Performance 99,
+  Accessibility 100, Best Practices 100, SEO 100; LCP 1,828 ms, CLS 0,
+  total blocking time 24 ms.
+- `.factory/evidence/live/polish-4/verify-url/verify.json`: 200 response,
+  814 ms load, correct title/lang/h1/main, no missing alt text or unlabeled
+  buttons, and no console errors.
+- Live screenshots:
+  `.factory/evidence/live/polish-4/home-mobile-cold.png`,
+  `.factory/evidence/live/polish-4/demo-mobile-cold.png`, and the desktop/mobile
+  captures under `.factory/evidence/live/polish-4/verify-url/`.
+
+No finding from reviews 1–4 remains open.

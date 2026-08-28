@@ -1,0 +1,75 @@
+{
+  "baseURL": "https://sqlite-sync-guard.sociobot.in",
+  "checkedAt": "2026-08-28T15:08:07.684Z",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "SQLite Sync Guard — check SQLite files before sync",
+      "axeViolations": 0
+    },
+    {
+      "path": "/demo/",
+      "status": 200,
+      "title": "Demo — SQLite Sync Guard",
+      "axeViolations": 0
+    },
+    {
+      "path": "/privacy/",
+      "status": 200,
+      "title": "Privacy — SQLite Sync Guard",
+      "axeViolations": 0
+    },
+    {
+      "path": "/terms/",
+      "status": 200,
+      "title": "Terms — SQLite Sync Guard",
+      "axeViolations": 0
+    },
+    {
+      "path": "/missing-polish-4",
+      "status": 404,
+      "title": "Page not found — SQLite Sync Guard",
+      "axeViolations": 0
+    }
+  ],
+  "links": [
+    {
+      "url": "https://sqlite-sync-guard.sociobot.in/",
+      "status": 200
+    },
+    {
+      "url": "https://sqlite-sync-guard.sociobot.in/demo/",
+      "status": 200
+    },
+    {
+      "url": "https://sqlite-sync-guard.sociobot.in/",
+      "status": 200
+    },
+    {
+      "url": "https://sqlite-sync-guard.sociobot.in/privacy/",
+      "status": 200
+    },
+    {
+      "url": "https://sqlite-sync-guard.sociobot.in/terms/",
+      "status": 200
+    },
+    {
+      "url": "https://sqlite-sync-guard.sociobot.in/?demo=1",
+      "status": 200
+    },
+    {
+      "url": "https://github.com/B-Divyesh/sf-sqlite-sync-guard",
+      "status": 200
+    },
+    {
+      "url": "https://github.com/B-Divyesh/sf-sqlite-sync-guard/issues",
+      "status": 200
+    }
+  ],
+  "consoleErrors": [],
+  "expected404Console": [
+    "Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "externalRequests": []
+}
