@@ -1,4 +1,27 @@
-# Handoff — SQLite Sync Guard repair 2
+# Handoff — SQLite Sync Guard verification 2
+
+## Independent release verdict: PASS
+
+Verified candidate `d81d77babbe77e4a54a09ddb8de0076ccca1a1ca` against
+`https://sqlite-sync-guard.sociobot.in/` on 2026-08-28. A fresh detached clone
+passed `npm ci`, `npm test`, `npm run check`, `npm run build`,
+`npm run check:site`, `npm run test:browser`, `cargo package --allow-dirty
+--locked`, and `npm audit --omit=dev`. The packaged crate was installed into a
+clean consumer and passed live-WAL, rollback-journal, online-backup,
+integrity-after-transfer, overwrite recovery, ignore-rule, and invalid-input
+exercises. The public site is byte-identical to this exact build and passed
+live desktop/mobile, keyboard, reduced-motion, offline-reload, zero-error,
+zero-outbound-request, response-policy, and Lighthouse checks (92 performance,
+100 accessibility, 100 best practices, 100 SEO). No P0–P3 defects were found.
+
+Full evidence is in `.factory/verification-2.md`. The only coverage limit is
+that platform-specific runtime lock behavior was exercised on Linux, not
+macOS/Windows. Run `cargo package --locked` to produce the release artifact;
+publishing remains factory-owned.
+
+---
+
+# Historical builder repair handoff
 
 Work order: `sqlite-sync-guard-repair-2`
 Candidate investigated: `2d1620ea53f4b4f6641f10699ea41e62f6cd4817`
