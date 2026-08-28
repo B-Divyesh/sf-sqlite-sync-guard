@@ -88,6 +88,9 @@ h2 { margin: 0 0 22px; font-family: var(--display); font-size: clamp(2.25rem, 5v
 .terminal-toolbar { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 20px; color: var(--clean); border-bottom: 1px solid #5b6b64; }
 .terminal-label { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
 .terminal-recording { display: block; width: 100%; height: auto; background: var(--ink); }
+.terminal-transcript { margin-top: 24px; border: 2px solid var(--ink); background: var(--clean); box-shadow: 4px 4px 0 var(--ochre); }
+.terminal-transcript summary { min-height: 44px; display: flex; align-items: center; padding: 10px 16px; cursor: pointer; font-weight: 800; }
+.terminal-transcript pre { max-width: 100%; margin: 0; padding: 16px; overflow-x: auto; color: var(--clean); background: var(--ink); font-family: var(--mono); font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .handoff { border-top: 2px solid var(--ink); }
 .proof-list { margin: 0; padding: 0; list-style: none; }
@@ -134,6 +137,7 @@ footer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 32px; align-it
 .demo-page { min-height: 700px; padding: 72px 0 112px; }
 .demo-page > .lede { max-width: 68ch; }
 .demo-page > .terminal-demo { max-width: 850px; margin: 48px 0 72px; }
+.demo-page > .terminal-transcript { max-width: 850px; margin: -48px 0 72px; }
 .demo-page section { max-width: 850px; padding-top: 48px; border-top: 2px solid var(--ink); }
 .not-found { min-height: calc(100vh - 230px); padding: 96px 0; background: linear-gradient(165deg, transparent 55%, var(--pale-red) 55% 70%, transparent 70%); }
 .not-found p { font-size: 18px; }
@@ -193,6 +197,7 @@ footer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 32px; align-it
   .demo-banner { align-items: flex-start; flex-direction: column; }
   .demo-banner span { width: 100%; }
   .demo-banner button, .demo-banner a { flex: 1; justify-content: center; }
+  .terminal-transcript pre { font-size: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

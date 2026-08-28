@@ -1,16 +1,128 @@
 [
-  {"id":"demo-recording","claim":"The site shows a normalized recording from sqlite-sync-guard demo","where":"landing demo, /demo","test":"npm run test:claims -- --grep @claim:demo-recording","sandbox":"fresh CLI demo; normalize only its temporary workspace path and compare it to the shipped recording"},
-  {"id":"demo-isolation","claim":"The CLI demo creates an isolated temporary workspace and runs the real scan and export paths","where":"landing demo, README","test":"npm run test:claims -- --grep @claim:demo-isolation","sandbox":"two fresh demo runs; assert distinct workspaces, unsafe scan, backup, and manifest"},
-  {"id":"unsafe-detection","claim":"The scan warns on WAL, SHM, and rollback-journal files","where":"landing, README","test":"npm run test:claims -- --grep @claim:unsafe-detection","sandbox":"fresh demo workspace; add each marker next to its bundled closed-project database"},
-  {"id":"exit-codes-json","claim":"Scan exits 0 when safe and 2 when unsafe, with parseable JSON in both documented flag positions","where":"landing, README","test":"npm run test:claims -- --grep @claim:exit-codes-json","sandbox":"fresh demo workspace; scan its unsafe root and safe transfer directory"},
-  {"id":"verified-transfer","claim":"Export creates an integrity-checked transfer backup and checksum manifest without overwriting unless forced","where":"landing, README","test":"npm run test:claims -- --grep @claim:verified-transfer","sandbox":"fresh demo workspace; verify its export, refusal, and forced replacement"},
-  {"id":"ignore-rules","claim":"Ignore rules preserve existing content, repeat unchanged, and support a non-writing dry run","where":"landing, README","test":"npm run test:claims -- --grep @claim:ignore-rules","sandbox":"fresh demo workspace and its bundled databases"},
-  {"id":"scan-read-only","claim":"Scan does not change database bytes","where":"landing, README","test":"npm run test:claims -- --grep @claim:scan-read-only","sandbox":"fresh demo workspace; compare closed-project database bytes around scan"},
-  {"id":"offline-demo","claim":"The web demo works after an offline reload","where":"offline notice, demo","test":"npm run test:claims -- --grep @claim:offline-demo","sandbox":"fresh CLI demo plus fresh browser; install worker, reload offline, inspect recording"},
-  {"id":"no-telemetry","claim":"The web demo makes no third-party or telemetry requests","where":"landing, privacy","test":"npm run test:claims -- --grep @claim:no-telemetry","sandbox":"fresh CLI demo and browser; intercept full demo flow and audit CLI network surface"},
-  {"id":"demo-reset","claim":"Reset demo clears the isolated demo namespace","where":"demo banner","test":"npm run test:claims -- --grep @claim:demo-reset","sandbox":"fresh CLI demo and browser; create a demo-prefixed key then reset"},
-  {"id":"mit-source","claim":"The project is free software under the MIT License","where":"landing, terms, README","test":"npm run test:claims -- --grep @claim:mit-source","sandbox":"fresh demo plus repository license and Cargo metadata"},
-  {"id":"bundled-sqlite","claim":"The CLI includes SQLite and does not need the sqlite3 command","where":"landing, README","test":"npm run test:claims -- --grep @claim:bundled-sqlite","sandbox":"run demo binary with PATH excluding sqlite3"},
-  {"id":"help-output","claim":"The CLI provides help for its commands","where":"README","test":"npm run test:claims -- --grep @claim:help-output","sandbox":"fresh demo then execute binary --help"},
-  {"id":"build-output","claim":"The build creates the release CLI and dist/site","where":"README","test":"npm run test:claims -- --grep @claim:build-output","sandbox":"fresh demo then clean production build and output assertions"}
+  {
+    "id": "demo-recording",
+    "claim": "The site shows a normalized recording from sqlite-sync-guard demo.",
+    "where": "landing recording, /demo",
+    "test": "npm run test:claims -- --grep @claim:demo-recording",
+    "sandbox": "fresh CLI demo; normalize only its temporary workspace path and compare it with the shipped recording and readable transcript"
+  },
+  {
+    "id": "demo-isolation",
+    "claim": "The CLI demo creates an isolated temporary workspace and runs the real scan and export paths.",
+    "where": "landing demo, /demo, README",
+    "test": "npm run test:claims -- --grep @claim:demo-isolation",
+    "sandbox": "two fresh demo runs; assert distinct workspaces, unsafe scan, backup, manifest, and untouched current directory"
+  },
+  {
+    "id": "unsafe-detection",
+    "claim": "The scan warns on WAL, SHM, and rollback-journal files.",
+    "where": "landing, README",
+    "test": "npm run test:claims -- --grep @claim:unsafe-detection",
+    "sandbox": "a fresh demo workspace per sidecar; scan a separately safe copied sample and assert the exact sidecar kind and database"
+  },
+  {
+    "id": "active-lock-detection",
+    "claim": "The scan warns when a database is in active use.",
+    "where": "landing, README",
+    "test": "npm run test:claims -- --grep @claim:active-lock-detection",
+    "sandbox": "fresh demo workspace; a separate process holds SQLite's database lock range while scan asserts active lock output"
+  },
+  {
+    "id": "exit-codes-json",
+    "claim": "Scan exits 0 when safe, 2 when unsafe, and 1 on error, with parseable JSON before or after the command.",
+    "where": "landing, README",
+    "test": "npm run test:claims -- --grep @claim:exit-codes-json",
+    "sandbox": "fresh demo workspace; safe, unsafe, and missing-root scans in both documented --json positions"
+  },
+  {
+    "id": "live-consistent-transfer",
+    "claim": "SQLite's backup function captures committed data in a transfer backup while a WAL writer remains open.",
+    "where": "landing, README safety details",
+    "test": "npm run test:claims -- --grep @claim:live-consistent-transfer",
+    "sandbox": "fresh demo workspace; WAL writer commits one row, leaves another uncommitted, then export and independent inspection assert only the committed row"
+  },
+  {
+    "id": "verified-transfer",
+    "claim": "Export creates an integrity-checked transfer backup and checksum manifest without overwriting unless forced.",
+    "where": "landing, README",
+    "test": "npm run test:claims -- --grep @claim:verified-transfer",
+    "sandbox": "fresh demo workspace; independently run integrity_check, recalculate the checksum and bytes, assert manifest fields, refusal, and forced replacement"
+  },
+  {
+    "id": "ignore-rules",
+    "claim": "Ignore rules preserve existing content, repeat unchanged, and support Syncthing, Resilio, and a non-writing dry run.",
+    "where": "landing, README",
+    "test": "npm run test:claims -- --grep @claim:ignore-rules",
+    "sandbox": "fresh demo workspaces; exercise both managed files with preserved content and byte-identical repeats, then assert a Resilio dry run creates no file"
+  },
+  {
+    "id": "scan-read-only",
+    "claim": "Scan does not change database bytes.",
+    "where": "landing, README",
+    "test": "npm run test:claims -- --grep @claim:scan-read-only",
+    "sandbox": "fresh demo workspace; compare a copied safe database before and after scan"
+  },
+  {
+    "id": "offline-demo",
+    "claim": "The web demo works after an offline reload.",
+    "where": "offline notice, demo",
+    "test": "npm run test:claims -- --grep @claim:offline-demo",
+    "sandbox": "fresh browser context; load the demo, obtain service-worker control, reload offline, and inspect the demo shell"
+  },
+  {
+    "id": "no-telemetry",
+    "claim": "The site loads no third-party scripts, fonts, analytics, or cookies.",
+    "where": "landing, privacy",
+    "test": "npm run test:claims -- --grep @claim:no-telemetry",
+    "sandbox": "fresh browser context; intercept every route and demo request, inspect cookies, and audit runtime source for remote endpoints"
+  },
+  {
+    "id": "demo-reset",
+    "claim": "Reset demo clears only the isolated demo namespace.",
+    "where": "demo banner",
+    "test": "npm run test:claims -- --grep @claim:demo-reset",
+    "sandbox": "fresh browser context; seed demo and real sentinels, reset, and assert that only demo-prefixed storage is removed"
+  },
+  {
+    "id": "mit-source",
+    "claim": "The project is free software under the MIT License.",
+    "where": "landing, terms, README",
+    "test": "npm run test:claims -- --grep @claim:mit-source",
+    "sandbox": "fresh checkout; inspect LICENSE and Cargo metadata"
+  },
+  {
+    "id": "bundled-sqlite",
+    "claim": "The CLI includes SQLite and does not need the sqlite3 command.",
+    "where": "landing, README",
+    "test": "npm run test:claims -- --grep @claim:bundled-sqlite",
+    "sandbox": "run the demo binary with PATH excluding sqlite3"
+  },
+  {
+    "id": "help-output",
+    "claim": "The CLI provides help for its commands.",
+    "where": "README",
+    "test": "npm run test:claims -- --grep @claim:help-output",
+    "sandbox": "fresh demo then execute binary --help and each documented command help"
+  },
+  {
+    "id": "build-output",
+    "claim": "The build creates the release CLI and deployable dist/site with routing configuration.",
+    "where": "README development and deploy sections",
+    "test": "npm run test:claims -- --grep @claim:build-output",
+    "sandbox": "fresh demo then clean production build and output assertions"
+  },
+  {
+    "id": "dev-server",
+    "claim": "npm run dev previews the documentation site.",
+    "where": "README",
+    "test": "npm run test:claims -- --grep @claim:dev-server",
+    "sandbox": "fresh demo then start the Vite server and request its home page"
+  },
+  {
+    "id": "package-output",
+    "claim": "cargo package --locked creates the publishable crate.",
+    "where": "README",
+    "test": "npm run test:claims -- --grep @claim:package-output",
+    "sandbox": "fresh checkout; package with Cargo and inspect the generated .crate archive"
+  }
 ]

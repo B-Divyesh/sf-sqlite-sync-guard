@@ -1,6 +1,6 @@
 # SQLite Sync Guard
 
-SQLite Sync Guard checks database files before you copy a synced folder. It warns about active use and SQLite journal files. It can create a verified transfer backup and add rules for Syncthing or Resilio Sync.
+SQLite Sync Guard checks database files before you copy a synced folder. It warns about journal files and active use. It creates verified transfer backups and adds sync-client ignore rules.
 
 The tool does not make writes from two synced computers safe. Use a transfer backup to move committed data between computers.
 
@@ -10,7 +10,9 @@ The tool does not make writes from two synced computers safe. Use a transfer bac
 cargo run -- demo
 ```
 
-The command creates a new temporary workspace from `examples/sample.sql`. It runs the real scan and export code, then prints the workspace path. The web demo is at <https://sqlite-sync-guard.sociobot.in/demo/>.
+The command creates a new temporary workspace from `examples/sample.sql`. It runs the real scan and export code. It then prints the workspace path.
+
+The web demo is at <https://sqlite-sync-guard.sociobot.in/demo/>. Opening <https://sqlite-sync-guard.sociobot.in/?demo=1> also enters the isolated demo.
 
 See [`.factory/demo.md`](.factory/demo.md) for reset and isolation details.
 
@@ -24,7 +26,7 @@ cargo install --git https://github.com/B-Divyesh/sf-sqlite-sync-guard
 
 The build includes SQLite. It does not need the `sqlite3` command.
 
-## Use it
+## Use SQLite Sync Guard
 
 Check a synced folder:
 
@@ -47,7 +49,7 @@ Create a verified transfer backup:
 sqlite-sync-guard export ~/Sync/app/data.db --output ~/Transfers
 ```
 
-This writes `data.backup.sqlite3` and `data.backup.manifest.json`. The manifest records the checksum, size, source observations, SQLite version, and check result. Existing files are preserved unless you add `--force`.
+This writes `data.backup.sqlite3` and `data.backup.manifest.json`. The manifest records the backup checksum and byte size. It records the SQLite version and check result. It also records journal files and locks found beside the source database. Existing files are preserved unless you add `--force`.
 
 Keep live database files out of sync:
 
@@ -62,10 +64,10 @@ The command owns one marked block in the ignore file. It preserves other rules. 
 
 - `scan` reads file headers, names, and documented lock regions. It does not change the database while checking it.
 - A `-wal`, `-shm`, or `-journal` file makes the set unsafe to copy, even without a visible lock.
-- `export` uses SQLite’s backup function and checks the completed file. It publishes the completed file in one filesystem operation.
+- `export` uses SQLite’s backup function and checks the completed file.
 - Never open the same writable database from two computers through a synced folder.
 
-## Develop and verify
+## Develop, test, and package
 
 ```sh
 npm ci
@@ -76,9 +78,13 @@ npm run test:browser
 npm run test:claims
 ```
 
-Run `npm run dev` to start the local documentation site. Run `cargo package --locked` to create the publishable crate.
+Run `npm run dev` to preview the documentation site. Run `cargo package --locked` to create the publishable crate.
 
-See [`.factory/claims.json`](.factory/claims.json) for each public claim and its test.
+The claims registry maps the public behavior described here to runnable tests. See [`.factory/claims.json`](.factory/claims.json).
+
+## Deploy
+
+`npm run build` creates the static publish directory at `dist/site`. Deploy its contents with `staticwebapp.config.json` so its routes and 404 response stay configured. Factory infrastructure owns the actual deployment.
 
 ## Privacy and license
 

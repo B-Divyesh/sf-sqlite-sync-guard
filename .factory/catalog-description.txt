@@ -1,1 +1,1 @@
-Check SQLite files before folder sync and create a verified transfer backup.
+Check SQLite files before folder sync and make a verified transfer backup.

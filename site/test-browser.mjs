@@ -100,6 +100,14 @@ try {
   await expectActive(page, ".skip-link");
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.activeElement?.id === "main");
+
+  const queryDemo = await page.goto(`${baseURL}/?demo=1`, { waitUntil: "networkidle" });
+  assert.equal(queryDemo?.status(), 200);
+  await page.waitForURL(`${baseURL}/demo/`);
+  assert.equal(await page.getByText("Demo — sample data, nothing is saved").count(), 1);
+  await page.waitForFunction(() => document.querySelector("[data-demo-transcript]")?.textContent?.includes("active-session.db"));
+  assert.match(await page.locator("[data-demo-transcript]").textContent(), /active-session\.db/);
+
   assert.equal(await page.locator('img[src="/demo-recording.svg"]').count(), 1);
 
   for (const route of ["/", "/demo/", "/privacy/", "/terms/", "/missing-page"]) {
@@ -114,13 +122,17 @@ try {
     }));
     assert.deepEqual(results.violations, [], `axe violations at ${route}: ${JSON.stringify(results.violations)}`);
   }
+  assert.deepEqual(await context.cookies(), [], "the static site must not set cookies");
+  assert.equal(externalRequests.length, 0, `unexpected outbound request: ${externalRequests.join(", ")}`);
 
   await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
   await page.screenshot({ path: join(evidence, "demo-desktop.png"), fullPage: true });
+  await page.evaluate(() => localStorage.setItem("sqlite-sync-guard:real", "keep"));
   await page.evaluate(() => localStorage.setItem("demo:sqlite-sync-guard:temporary-note", "changed"));
   await page.getByRole("button", { name: "Reset demo" }).click();
   assert.equal(await page.evaluate(() => localStorage.getItem("demo:sqlite-sync-guard:fixture")), null);
   assert.equal(await page.evaluate(() => localStorage.getItem("demo:sqlite-sync-guard:temporary-note")), null);
+  assert.equal(await page.evaluate(() => localStorage.getItem("sqlite-sync-guard:real")), "keep");
   await assertText(page, "[data-demo-reset-status]", /Demo reset/);
 
   for (const name of ["Privacy", "Terms", "Demo"]) {
@@ -131,6 +143,23 @@ try {
     assert.notEqual(await page.locator("[data-route-status]").innerText(), "", `${name} navigation must announce h1`);
   }
 
+  await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
+  await page.getByRole("link", { name: "Start for real" }).click();
+  await page.waitForLoadState("networkidle");
+  assert.equal(await page.evaluate(() => document.activeElement?.id), "hero-title", "Start for real must focus the home heading");
+  assert.match(await page.locator("[data-route-status]").innerText(), /Check SQLite files before folder sync/);
+
+  await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
+  await page.getByRole("link", { name: "SQLite Sync Guard home" }).click();
+  await page.waitForLoadState("networkidle");
+  assert.equal(await page.evaluate(() => document.activeElement?.id), "hero-title", "wordmark home must focus the home heading");
+
+  await page.goto(`${baseURL}/privacy/`, { waitUntil: "networkidle" });
+  await page.locator("header nav").getByRole("link", { name: "Commands", exact: true }).click();
+  await page.waitForLoadState("networkidle");
+  assert.equal(await page.evaluate(() => document.activeElement?.id), "commands-title", "Commands must focus its heading");
+  assert.match(await page.locator("[data-route-status]").innerText(), /Scan, export, or add ignore rules/);
+
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
   const mobile = await mobileContext.newPage();
   await mobile.goto(`${baseURL}/`, { waitUntil: "networkidle" });
@@ -138,6 +167,20 @@ try {
   assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, "390px viewport must not overflow horizontally");
   assert.ok(Number.parseFloat(await mobile.locator(".lede").evaluate((element) => getComputedStyle(element).fontSize)) >= 16,
     "mobile body text must be at least 16px");
+  await mobile.goto(`${baseURL}/privacy/`, { waitUntil: "networkidle" });
+  await mobile.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; scrollTo(0, document.documentElement.scrollHeight); });
+  await mobile.waitForFunction(() => scrollY > 40);
+  const privacyScroll = await mobile.evaluate(() => scrollY);
+  assert.ok(privacyScroll > 40, "privacy route must be scrollable for history restoration coverage");
+  await mobile.evaluate(() => location.assign("/"));
+  await mobile.waitForURL(`${baseURL}/`);
+  await mobile.waitForLoadState("networkidle");
+  await mobile.goBack({ waitUntil: "networkidle" });
+  assert.equal(await mobile.evaluate(() => document.activeElement?.tagName), "H1", "Back must focus the destination heading");
+  const restoredScroll = await mobile.evaluate(() => scrollY);
+  assert.ok(restoredScroll >= privacyScroll - 4, `Back must preserve restored scroll (${restoredScroll} vs ${privacyScroll})`);
+  await mobile.goForward({ waitUntil: "networkidle" });
+  assert.equal(await mobile.evaluate(() => document.activeElement?.id), "hero-title", "Forward must focus the home heading");
   await mobileContext.close();
 
   await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });

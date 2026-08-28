@@ -1,4 +1,5 @@
 import "./styles.css";
+import { demoTranscript } from "./demo-transcript";
 
 if (location.pathname === "/" && new URLSearchParams(location.search).get("demo") === "1") {
   location.replace("/demo/");
@@ -11,6 +12,10 @@ document.querySelector<HTMLButtonElement>("[data-reset-demo]")?.addEventListener
 });
 document.querySelector("[data-start-real]")?.addEventListener("click", () => Object.keys(localStorage).filter((key) => key.startsWith("demo:sqlite-sync-guard:")).forEach((key) => localStorage.removeItem(key)));
 
+document.querySelectorAll<HTMLElement>("[data-demo-transcript]").forEach((transcript) => {
+  transcript.textContent = demoTranscript;
+});
+
 const copyStatus = document.querySelector<HTMLElement>("[data-copy-status]");
 document.querySelectorAll<HTMLButtonElement>("[data-copy-target]").forEach((button) => button.addEventListener("click", async () => {
   const target = document.getElementById(button.dataset.copyTarget ?? "");
@@ -19,13 +24,23 @@ document.querySelectorAll<HTMLButtonElement>("[data-copy-target]").forEach((butt
   catch { if (target) { const range = document.createRange(); range.selectNodeContents(target); const selection = getSelection(); selection?.removeAllRanges(); selection?.addRange(range); target.setAttribute("tabindex", "-1"); target.focus(); } if (copyStatus) copyStatus.textContent = "Could not copy because this browser denied clipboard access. The command is selected; press Ctrl+C or Command+C."; }
 }));
 
-document.querySelector<HTMLAnchorElement>(".skip-link")?.addEventListener("click", () => requestAnimationFrame(() => document.querySelector<HTMLElement>("main")?.focus()));
+document.querySelector<HTMLAnchorElement>(".skip-link")?.addEventListener("click", () => requestAnimationFrame(() => document.querySelector<HTMLElement>("main")?.focus({ preventScroll: true })));
 const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-if (!location.hash || navigation?.type === "back_forward") requestAnimationFrame(() => {
+const isSameOriginRoute = (() => {
+  if (!document.referrer) return false;
+  try { return new URL(document.referrer).origin === location.origin; }
+  catch { return false; }
+})();
+if (navigation?.type === "back_forward" || isSameOriginRoute) requestAnimationFrame(() => {
   const h1 = document.querySelector<HTMLElement>("h1");
   const live = document.querySelector<HTMLElement>("[data-route-status]");
-  if (h1) h1.focus();
-  if (live && h1) live.textContent = h1.textContent ?? "";
+  const hash = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+  const destination = hash?.querySelector<HTMLElement>("h1, h2, h3") ?? hash ?? h1;
+  if (destination) {
+    if (!destination.hasAttribute("tabindex")) destination.setAttribute("tabindex", "-1");
+    destination.focus({ preventScroll: true });
+  }
+  if (live && destination) live.textContent = destination.textContent ?? "";
 });
 
 const offlineNote = document.querySelector<HTMLElement>("[data-offline]");

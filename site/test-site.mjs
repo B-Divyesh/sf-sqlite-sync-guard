@@ -14,6 +14,9 @@ const checks = [
   [/id="install"/, "usable source install target"],
   [/Install from the public source/, "truthful install CTA"],
   [/demo-recording\.svg/, "real CLI recording"],
+  [/data-demo-transcript/, "readable demo transcript"],
+  [/id="hero-title" tabindex="-1"/, "focusable home heading"],
+  [/id="commands-title" tabindex="-1"/, "focusable commands heading"],
   [/:focus-visible/, "visible focus rule", undefined, css],
   [/prefers-reduced-motion/, "reduced motion rule", undefined, css]
 ];
