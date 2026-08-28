@@ -13,6 +13,7 @@ const checks = [
   [/class="skip-link"/, "skip link"],
   [/id="install"/, "usable source install target"],
   [/Install from the public source/, "truthful install CTA"],
+  [/demo-recording\.svg/, "real CLI recording"],
   [/:focus-visible/, "visible focus rule", undefined, css],
   [/prefers-reduced-motion/, "reduced motion rule", undefined, css]
 ];

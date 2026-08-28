@@ -87,14 +87,7 @@ h2 { margin: 0 0 22px; font-family: var(--display); font-size: clamp(2.25rem, 5v
 .terminal-demo { border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--red); background: var(--ink); overflow: hidden; }
 .terminal-toolbar { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 20px; color: var(--clean); border-bottom: 1px solid #5b6b64; }
 .terminal-label { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
-.fixture-switch { display: flex; gap: 8px; }
-.fixture-switch button { min-height: 44px; padding: 0 14px; border: 1px solid #84928d; color: var(--clean); background: transparent; cursor: pointer; }
-.fixture-switch button[aria-pressed="true"] { color: var(--ink); background: var(--paper); border-color: var(--paper); }
-.terminal-output { min-height: 330px; margin: 0; padding: 28px; overflow: auto; color: #f9f1df; font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
-.terminal-status { min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-top: 2px solid var(--ink); color: var(--ink); }
-.terminal-status span { width: 30px; height: 30px; display: grid; place-items: center; border: 2px solid currentColor; border-radius: 50%; font-weight: 900; }
-.status-danger { background: var(--pale-red); }
-.status-safe { background: var(--pale-teal); }
+.terminal-recording { display: block; width: 100%; height: auto; background: var(--ink); }
 
 .handoff { border-top: 2px solid var(--ink); }
 .proof-list { margin: 0; padding: 0; list-style: none; }
@@ -185,10 +178,6 @@ footer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 32px; align-it
   .hero-art figcaption { right: 4px; }
   .warning-band { grid-template-columns: 1fr; gap: 4px; }
   .demo-section, .handoff, .commands { padding: 72px 0; }
-  .terminal-toolbar { align-items: flex-start; flex-direction: column; }
-  .fixture-switch { width: 100%; }
-  .fixture-switch button { flex: 1; }
-  .terminal-output { min-height: 390px; padding: 20px 16px; font-size: 12px; }
   .proof-list li { grid-template-columns: 54px 1fr; gap: 14px; }
   .proof-index { width: 48px; height: 48px; }
   .command-grid article { display: block; }

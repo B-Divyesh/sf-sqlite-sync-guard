@@ -10,7 +10,7 @@ The tool does not make writes from two synced computers safe. Use a transfer bac
 cargo run -- demo
 ```
 
-The command creates a new temporary workspace from the bundled sample. It runs the real scan and export code, then prints the workspace path. Your files are never read. The web demo is at <https://sqlite-sync-guard.sociobot.in/demo/>.
+The command creates a new temporary workspace from `examples/sample.sql`. It runs the real scan and export code, then prints the workspace path. The web demo is at <https://sqlite-sync-guard.sociobot.in/demo/>.
 
 See [`.factory/demo.md`](.factory/demo.md) for reset and isolation details.
 
@@ -67,8 +67,6 @@ The command owns one marked block in the ignore file. It preserves other rules. 
 
 ## Develop and verify
 
-Use Rust 1.85 or newer, Node.js 20 or newer, and npm 10 or newer.
-
 ```sh
 npm ci
 npm test
@@ -78,12 +76,12 @@ npm run test:browser
 npm run test:claims
 ```
 
-`npm run build` creates the release CLI and `dist/site`. `npm run dev` starts the local documentation site. `cargo package --locked` creates the publishable crate; the factory owns publishing.
+Run `npm run dev` to start the local documentation site. Run `cargo package --locked` to create the publishable crate.
 
-The test suite checks the CLI, demo, site, accessibility, privacy, offline reload, and update path. See [`.factory/claims.json`](.factory/claims.json) for each public claim and its test.
+See [`.factory/claims.json`](.factory/claims.json) for each public claim and its test.
 
 ## Privacy and license
 
-The CLI has no telemetry or network client. The documentation site loads no analytics, third-party scripts, or third-party fonts. See the [privacy page](https://sqlite-sync-guard.sociobot.in/privacy/) and [terms](https://sqlite-sync-guard.sociobot.in/terms/).
+See the [privacy page](https://sqlite-sync-guard.sociobot.in/privacy/) and [terms](https://sqlite-sync-guard.sociobot.in/terms/).
 
 MIT © 2026 Sociobot (Param Factory)

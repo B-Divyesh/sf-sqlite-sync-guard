@@ -1,48 +1,50 @@
-# Handoff — adversarial review 2
+# Handoff — perfection loop polish 2
 
-Work order: `sqlite-sync-guard-review-2`
-Reviewed commit: `3dd4c7ab2762dcbe177940482d4573a3a3febe83`
+Work order: `sqlite-sync-guard-polish-2`
+Base reviewed: `3dd4c7ab2762dcbe177940482d4573a3a3febe83`
+Repair commit: recorded after commit/push
 Live URL: <https://sqlite-sync-guard.sociobot.in>
 
-## Outcome
+## Delivered
 
-No product code was changed. The review report is in `.factory/review-2.md`.
-Verdict: **FAIL**.
+- Replaced the hand-written browser terminal transcript with a self-hosted SVG generated from the real `sqlite-sync-guard demo` command. Its text companion normalizes only the random temporary workspace path.
+- Made the CLI demo consume `examples/sample.sql`, expose sample identifiers through `demo --json`, and rebuilt CLI claim tests around fresh demo workspaces.
+- Preserved the one-click `?demo=1` path, banner, reset/start-real cleanup, isolated `demo:` namespace, offline demo, and the risograph visual system.
+- Fixed forward full-page route focus/announcement and completed the 404 metadata plus shared header shell.
+- Removed unsupported README/privacy promises and added the recording claim. Catalog description remains verb-first and under 120 characters.
 
-## Verified
+## Verification
 
-- Fresh desktop and 390 px contexts answered what the tool does, who it is for,
-  and what to click first without scrolling.
-- `/demo/` is one click away, begins with realistic sample output, uses only
-  `demo:sqlite-sync-guard:fixture`, resets correctly, and leaves no normal
-  local-storage key.
-- Live `/demo/` reloaded and operated offline after service-worker control;
-  captured traffic was same-origin only.
-- A clean clone at `/tmp/sqlite-sync-guard-review-2-6bR84N` ran every one of
-  the 14 commands in `.factory/claims.json`; all passed.
-- Public routes, sitemap/robots, links, responsive layout, and the designed
-  404 were independently checked. The main four routes have the expected
-  metadata and landmarks.
-
-## Remaining gaps
-
-1. The page calls a hand-coded TypeScript fixture a recording of the real CLI;
-   the real `demo` output differs.
-2. Most registered CLI claim tests do not use the required demo entry point
-   and bundled sample.
-3. Normal navigation leaves focus on `body` and does not announce the new h1.
-4. Several README, demo, and privacy assertions are absent from claims.json.
-5. The 404 route lacks the normal metadata and full header shell.
-
-## How to reproduce
+Executed locally from this checkout:
 
 ```sh
-git clone https://github.com/B-Divyesh/sf-sqlite-sync-guard.git /tmp/review
-cd /tmp/review
 npm ci
-npm run test:claims -- --grep @claim:demo-isolation
-cargo run --quiet -- demo
+npm run check
+npm test
+npm run build
+npm run check:site
+npm run test:browser
+npm run test:claims
+cargo package --locked --allow-dirty
 ```
 
-Compare the command output with the transcript on `/demo/`, then follow the
-header Privacy link and inspect `document.activeElement` after load.
+The browser suite passed desktop and 390px mobile checks, keyboard route focus,
+immediate axe checks, route metadata and links, same-origin request checks,
+demo reset, offline reload, and service-worker A→B update. Generated screenshots:
+`.factory/evidence/home-mobile-390.png` and `.factory/evidence/demo-desktop.png`.
+
+Every registry entry passed through `npm run test:claims`; the CLI entries begin
+from fresh `demo --json` workspaces. The build produced `dist/site`, and the
+release CLI was packaged with `cargo package --locked --allow-dirty`.
+
+## Deployment
+
+The repository contains no worker-side deployment command or credentials. The
+static work order deploys from `main`; push the repair commit, then verify the
+live URL cold before accepting it. No infrastructure, DNS, or billing changes
+were made.
+
+## Known gaps
+
+None in the repository repair. The post-push live deployment check is the only
+external step and must be recorded with its resulting commit URL.

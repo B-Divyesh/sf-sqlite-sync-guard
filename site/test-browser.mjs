@@ -100,15 +100,14 @@ try {
   await expectActive(page, ".skip-link");
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.activeElement?.id === "main");
-  const safeFixture = page.getByRole("button", { name: "Show safe sample" });
-  await safeFixture.focus();
-  await safeFixture.press("Space");
-  await page.waitForFunction(() => document.querySelector('[data-fixture="safe"]')?.getAttribute("aria-pressed") === "true");
-  assert.equal(await safeFixture.getAttribute("aria-pressed"), "true");
-  await assertText(page, "[data-terminal-status]", /Safe scan · ready to copy/);
+  assert.equal(await page.locator('img[src="/demo-recording.svg"]').count(), 1);
 
   for (const route of ["/", "/demo/", "/privacy/", "/terms/", "/missing-page"]) {
     await page.goto(`${baseURL}${route}`, { waitUntil: "networkidle" });
+    assert.equal(await page.locator('meta[name="theme-color"]').count(), 1, `theme color missing at ${route}`);
+    assert.equal(await page.locator('meta[property="og:title"]').count(), 1, `Open Graph title missing at ${route}`);
+    assert.equal(await page.locator('meta[name="twitter:title"]').count(), 1, `Twitter title missing at ${route}`);
+    assert.equal(await page.getByRole("link", { name: "Commands" }).count(), 1, `shared Commands link missing at ${route}`);
     await page.addScriptTag({ url: `${baseURL}/axe-test.js` });
     const results = await page.evaluate(async () => axe.run(document, {
       runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] }
@@ -118,11 +117,19 @@ try {
 
   await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
   await page.screenshot({ path: join(evidence, "demo-desktop.png"), fullPage: true });
-  await page.getByRole("button", { name: "Show safe sample" }).click();
-  assert.equal(await page.evaluate(() => localStorage.getItem("demo:sqlite-sync-guard:fixture")), "safe");
+  await page.evaluate(() => localStorage.setItem("demo:sqlite-sync-guard:temporary-note", "changed"));
   await page.getByRole("button", { name: "Reset demo" }).click();
   assert.equal(await page.evaluate(() => localStorage.getItem("demo:sqlite-sync-guard:fixture")), null);
-  await assertText(page, "[data-terminal-status]", /Unsafe scan · do not copy/);
+  assert.equal(await page.evaluate(() => localStorage.getItem("demo:sqlite-sync-guard:temporary-note")), null);
+  await assertText(page, "[data-demo-reset-status]", /Demo reset/);
+
+  for (const name of ["Privacy", "Terms", "Demo"]) {
+    await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+    await page.locator("header nav").getByRole("link", { name, exact: true }).click();
+    await page.waitForLoadState("networkidle");
+    assert.equal(await page.evaluate(() => document.activeElement?.tagName), "H1", `${name} navigation must focus h1`);
+    assert.notEqual(await page.locator("[data-route-status]").innerText(), "", `${name} navigation must announce h1`);
+  }
 
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
   const mobile = await mobileContext.newPage();
@@ -158,7 +165,7 @@ try {
   await context.setOffline(true);
   await page.reload({ waitUntil: "domcontentloaded" });
   assert.equal(await page.title(), "Demo — SQLite Sync Guard", "activated worker must serve demo shell offline");
-  await page.getByRole("button", { name: "Show safe sample" }).click();
+  assert.equal(await page.locator('img[src="/demo-recording.svg"]').count(), 1);
   const cacheNames = await page.evaluate(async () => caches.keys());
   assert.deepEqual(cacheNames, [`sqlite-sync-guard-${releaseBWorker.version}`], "activation must delete the old release cache");
   assert.deepEqual(pageErrors, [], `browser errors: ${pageErrors.join("; ")}`);

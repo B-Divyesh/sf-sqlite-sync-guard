@@ -12,7 +12,7 @@
     "check": "tsc --noEmit && cargo fmt --check && cargo clippy --all-targets -- -D warnings",
     "build": "npm run build:cli && npm run build:site",
     "build:cli": "cargo build --release --locked",
-    "build:site": "vite build --config vite.config.js && node site/pwa-build.mjs",
+    "build:site": "node site/generate-demo-recording.mjs && vite build --config vite.config.js && node site/pwa-build.mjs",
     "check:site": "node site/check-dist.mjs"
   },
   "devDependencies": {

@@ -165,14 +165,7 @@ fn run_demo(json: bool) -> Result<ExitCode> {
     let live = path.join("active-session.db");
     for database in [&safe, &live] {
         let connection = Connection::open(database)?;
-        connection.execute(
-            "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT NOT NULL)",
-            [],
-        )?;
-        connection.execute(
-            "INSERT INTO notes(body) VALUES ('sample transfer record')",
-            [],
-        )?;
+        connection.execute_batch(include_str!("../examples/sample.sql"))?;
     }
     std::fs::write(
         path.join("active-session.db-wal"),
@@ -189,7 +182,8 @@ fn run_demo(json: bool) -> Result<ExitCode> {
     if json {
         print_json(&serde_json::json!({
             "ok": true, "demo": true, "workspace": path, "scan": report,
-            "transfer_backup": exported.backup, "manifest": exported.manifest
+            "transfer_backup": exported.backup, "manifest": exported.manifest,
+            "sample_ids": ["closed-project.db", "active-session.db", "examples/sample.sql"]
         }))?;
     } else {
         println!("DEMO — isolated sample data; your files were not read or changed.\n");

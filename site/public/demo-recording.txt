@@ -1,0 +1,14 @@
+DEMO — isolated sample data; your files were not read or changed.
+
+UNSAFE  active-session.db
+        - WAL sidecar present
+SAFE  closed-project.db
+
+DO NOT SYNC — 1 of 2 database set(s) are unsafe to copy live.
+Close writers or run `sqlite-sync-guard export <db> --output <dir>`. 
+
+TRANSFER BACKUP CREATED
+  backup:   <demo-workspace>/transfer/closed-project.backup.sqlite3
+  manifest: <demo-workspace>/transfer/closed-project.backup.manifest.json
+  workspace: <demo-workspace>
+Delete this temporary workspace when you are finished.

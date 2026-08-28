@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { buildId, collectShell } from "./pwa-build.mjs";
 
 const root = resolve("dist/site");
-for (const file of ["index.html", "demo/index.html", "privacy/index.html", "terms/index.html", "404.html", "robots.txt", "sitemap.xml", "sw.js"]) {
+for (const file of ["index.html", "demo/index.html", "privacy/index.html", "terms/index.html", "404.html", "demo-recording.svg", "demo-recording.txt", "robots.txt", "sitemap.xml", "sw.js"]) {
   if (!existsSync(resolve(root, file))) throw new Error(`missing dist/site/${file}`);
 }
 const assets = readdirSync(resolve(root, "assets"));
@@ -12,6 +12,7 @@ const cssBytes = assets.filter((name) => name.endsWith(".css")).reduce((sum, nam
 const html = readFileSync(resolve(root, "index.html"), "utf8");
 const serviceWorker = readFileSync(resolve(root, "sw.js"), "utf8");
 if (!html.includes("guarded-handoff.webp")) throw new Error("hero missing from built page");
+if (!html.includes("demo-recording.svg")) throw new Error("real CLI demo recording missing from built page");
 if (jsBytes > 200 * 1024) throw new Error(`JS budget exceeded: ${jsBytes}`);
 if (cssBytes > 50 * 1024) throw new Error(`CSS budget exceeded: ${cssBytes}`);
 if (/sqlite-sync-guard-v1/.test(serviceWorker)) throw new Error("service worker uses a fixed cache revision");
