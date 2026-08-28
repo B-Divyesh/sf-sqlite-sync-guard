@@ -1,107 +1,89 @@
 # SQLite Sync Guard
 
-SQLite Sync Guard is a small, cross-platform preflight for developers who sync
-folders between computers. It finds SQLite databases and their WAL, SHM, and
-rollback-journal companions, reports active SQLite locks, makes a consistent
-backup with a transfer manifest, and can write ignore rules for Syncthing or
-Resilio Sync.
+SQLite Sync Guard checks database files before you copy a synced folder. It warns about active use and SQLite journal files. It can create a verified transfer backup and add rules for Syncthing or Resilio Sync.
 
-It prevents unsafe file copying. It does **not** make concurrent SQLite writes
-across devices safe, merge profiles, or replace a replication system.
+The tool does not make writes from two synced computers safe. Use a transfer backup to move committed data between computers.
+
+## Try the isolated demo
+
+```sh
+cargo run -- demo
+```
+
+The command creates a new temporary workspace from the bundled sample. It runs the real scan and export code, then prints the workspace path. Your files are never read. The web demo is at <https://sqlite-sync-guard.sociobot.in/demo/>.
+
+See [`.factory/demo.md`](.factory/demo.md) for reset and isolation details.
 
 ## Install
 
-Prebuilt binaries are not published yet. Install the current source from the
-public repository instead:
+Install from the public source:
 
 ```sh
 cargo install --git https://github.com/B-Divyesh/sf-sqlite-sync-guard
 ```
 
-SQLite is bundled into the binary; a system SQLite installation is not needed.
+The build includes SQLite. It does not need the `sqlite3` command.
 
-## Usage
+## Use it
 
-Check a sync root before copying it:
+Check a synced folder:
 
 ```sh
 sqlite-sync-guard scan ~/Sync
 ```
 
-Exit code `0` means no unsafe live sets were found, `2` means at least one
-database has a sidecar or active lock, and `1` means the scan could not be
-completed. Use JSON for scripts:
+Exit code `0` means the files look safe to copy. Exit code `2` means a journal file or active lock was found. Exit code `1` means the scan failed.
+
+Use JSON in a script:
 
 ```sh
 sqlite-sync-guard --json scan ~/Sync
+sqlite-sync-guard scan ~/Sync --json
 ```
 
-Create a consistent, integrity-checked handoff artifact:
+Create a verified transfer backup:
 
 ```sh
 sqlite-sync-guard export ~/Sync/app/data.db --output ~/Transfers
 ```
 
-This writes `data.backup.sqlite3` and `data.backup.manifest.json`. The manifest
-contains the SHA-256 digest, byte length, source observations, SQLite version,
-and integrity result. Existing exports are never overwritten unless `--force`
-is supplied.
+This writes `data.backup.sqlite3` and `data.backup.manifest.json`. The manifest records the checksum, size, source observations, SQLite version, and check result. Existing files are preserved unless you add `--force`.
 
-Keep live database files out of a sync client:
+Keep live database files out of sync:
 
 ```sh
 sqlite-sync-guard ignore ~/Sync --client syncthing
 sqlite-sync-guard ignore ~/Sync --client resilio --dry-run
 ```
 
-The command manages one clearly marked block in `.stignore` or
-`.sync/IgnoreList`; unrelated rules are preserved and repeat runs are
-idempotent. Run `sqlite-sync-guard --help` or a command’s `--help` for all
-options.
+The command owns one marked block in the ignore file. It preserves other rules. A repeated run leaves the file unchanged. Run `sqlite-sync-guard --help` for every option.
 
-## Safety model
+## Safety details
 
-- `scan` reads headers and metadata only. It does not connect to a database or
-  trigger journal recovery.
-- A matching `-wal`, `-shm`, or `-journal` file is treated as unsafe to copy,
-  even if no process lock is visible.
-- Lock probes use SQLite’s documented lock-byte regions on the database and
-  WAL shared-memory files.
-- `export` is the only command that opens a database. It uses SQLite’s online
-  backup API, then runs `PRAGMA integrity_check` on the staged copy before an
-  atomic rename.
-- The backup is a handoff snapshot. Never open the same writable database from
-  two machines through a file-sync folder.
+- `scan` reads file headers, names, and documented lock regions. It does not change the database while checking it.
+- A `-wal`, `-shm`, or `-journal` file makes the set unsafe to copy, even without a visible lock.
+- `export` uses SQLite’s backup function and checks the completed file. It publishes the completed file in one filesystem operation.
+- Never open the same writable database from two computers through a synced folder.
 
 ## Develop and verify
 
-Requirements: Rust 1.85+, Node.js 20+, and npm 10+.
+Use Rust 1.85 or newer, Node.js 20 or newer, and npm 10 or newer.
 
 ```sh
-npm install
+npm ci
 npm test
 npm run check
 npm run build
+npm run test:browser
+npm run test:claims
 ```
 
-`npm test` runs the Rust unit/integration suite and deterministic site/PWA
-checks. `npm run test:browser` runs the pinned Chromium regression for the
-desktop and 390px mobile shells, keyboard flow, axe accessibility, no-outbound
-requests, and an online service-worker update followed by an offline reload.
-`npm run build` produces the release binary and the static site at
-`dist/site/index.html`. To work on the docs site, run `npm run dev`.
+`npm run build` creates the release CLI and `dist/site`. `npm run dev` starts the local documentation site. `cargo package --locked` creates the publishable crate; the factory owns publishing.
 
-Useful release checks:
+The test suite checks the CLI, demo, site, accessibility, privacy, offline reload, and update path. See [`.factory/claims.json`](.factory/claims.json) for each public claim and its test.
 
-```sh
-cargo package --allow-dirty
-npm run check:site
-```
+## Privacy and license
 
-The project performs no telemetry and the docs site loads no third-party
-scripts, fonts, or analytics. See [CHANGELOG.md](CHANGELOG.md) for release
-history.
-
-## License
+The CLI has no telemetry or network client. The documentation site loads no analytics, third-party scripts, or third-party fonts. See the [privacy page](https://sqlite-sync-guard.sociobot.in/privacy/) and [terms](https://sqlite-sync-guard.sociobot.in/terms/).
 
 MIT © 2026 Sociobot (Param Factory)

@@ -12,7 +12,7 @@ const checks = [
   [/<img[^>]+alt="[^"]+"/, "meaningful hero alt"],
   [/class="skip-link"/, "skip link"],
   [/id="install"/, "usable source install target"],
-  [/Install from source/, "truthful install CTA"],
+  [/Install from the public source/, "truthful install CTA"],
   [/:focus-visible/, "visible focus rule", undefined, css],
   [/prefers-reduced-motion/, "reduced motion rule", undefined, css]
 ];

@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { buildId, collectShell } from "./pwa-build.mjs";
 
 const root = resolve("dist/site");
-for (const file of ["index.html", "privacy/index.html", "terms/index.html", "sw.js"]) {
+for (const file of ["index.html", "demo/index.html", "privacy/index.html", "terms/index.html", "404.html", "robots.txt", "sitemap.xml", "sw.js"]) {
   if (!existsSync(resolve(root, file))) throw new Error(`missing dist/site/${file}`);
 }
 const assets = readdirSync(resolve(root, "assets"));

@@ -3,6 +3,7 @@ use std::process::ExitCode;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use rusqlite::Connection;
 use serde::Serialize;
 use sqlite_sync_guard::{
     ExportOptions, IgnoreClient, IgnoreOptions, export_database, scan_root, write_ignore_rules,
@@ -12,8 +13,8 @@ use sqlite_sync_guard::{
 #[command(
     name = "sqlite-sync-guard",
     version,
-    about = "Preflight live SQLite files before folder sync",
-    long_about = "Find unsafe SQLite/WAL sets, create a consistent handoff backup, and keep live databases out of file-sync clients. This tool prevents unsafe copying; it does not enable concurrent SQLite writers.",
+    about = "Check SQLite files before folder sync",
+    long_about = "Find SQLite journal files and active use, create a verified transfer backup, and keep live database files out of folder sync. This tool does not make writes from two synced computers safe.",
     after_help = "EXIT CODES:\n  0  Safe / command completed\n  1  Operational error or incomplete scan\n  2  Unsafe database set found by scan"
 )]
 struct Cli {
@@ -27,13 +28,15 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Find SQLite databases, sidecars, and active lock bytes without opening SQLite
+    /// Run the real scan and export workflow on isolated sample data
+    Demo,
+    /// Find SQLite databases, journal files, and active use without changing them
     Scan {
         /// Folder that is copied by a sync client
         #[arg(value_name = "ROOT")]
         root: PathBuf,
     },
-    /// Create a consistent SQLite backup and integrity manifest
+    /// Create a verified transfer backup and manifest
     Export {
         /// Source SQLite database (live WAL mode is supported)
         #[arg(value_name = "DATABASE")]
@@ -47,7 +50,7 @@ enum Command {
         #[arg(long)]
         force: bool,
     },
-    /// Add idempotent exclusions for every discovered SQLite database
+    /// Add repeat-safe ignore rules for every discovered SQLite database
     Ignore {
         /// Sync root containing the databases
         #[arg(value_name = "ROOT")]
@@ -83,6 +86,7 @@ fn main() -> ExitCode {
 
 fn run(cli: &Cli) -> Result<ExitCode> {
     match &cli.command {
+        Command::Demo => run_demo(cli.json),
         Command::Scan { root } => {
             let report = scan_root(root)?;
             if cli.json {
@@ -111,11 +115,11 @@ fn run(cli: &Cli) -> Result<ExitCode> {
             if cli.json {
                 print_json(&result)?;
             } else {
-                println!("SAFE EXPORT\n  backup:   {}", result.backup);
+                println!("TRANSFER BACKUP CREATED\n  backup:   {}", result.backup);
                 println!("  manifest: {}", result.manifest);
                 println!("  sha256:   {}", result.sha256);
                 println!("  integrity_check: {}", result.integrity_check);
-                println!("\nSync the backup and manifest, not the live database.");
+                println!("\nSync the transfer backup and manifest, not the live database.");
             }
             Ok(ExitCode::SUCCESS)
         }
@@ -150,6 +154,53 @@ fn run(cli: &Cli) -> Result<ExitCode> {
             Ok(ExitCode::SUCCESS)
         }
     }
+}
+
+fn run_demo(json: bool) -> Result<ExitCode> {
+    let workspace = tempfile::Builder::new()
+        .prefix("sqlite-sync-guard-demo-")
+        .tempdir()?;
+    let path = workspace.keep();
+    let safe = path.join("closed-project.db");
+    let live = path.join("active-session.db");
+    for database in [&safe, &live] {
+        let connection = Connection::open(database)?;
+        connection.execute(
+            "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT NOT NULL)",
+            [],
+        )?;
+        connection.execute(
+            "INSERT INTO notes(body) VALUES ('sample transfer record')",
+            [],
+        )?;
+    }
+    std::fs::write(
+        path.join("active-session.db-wal"),
+        b"bundled demo journal pages",
+    )?;
+
+    let report = scan_root(&path)?;
+    let export_dir = path.join("transfer");
+    let exported = export_database(&ExportOptions {
+        database: safe,
+        output: export_dir,
+        force: false,
+    })?;
+    if json {
+        print_json(&serde_json::json!({
+            "ok": true, "demo": true, "workspace": path, "scan": report,
+            "transfer_backup": exported.backup, "manifest": exported.manifest
+        }))?;
+    } else {
+        println!("DEMO — isolated sample data; your files were not read or changed.\n");
+        print_scan(&report);
+        println!("\nTRANSFER BACKUP CREATED");
+        println!("  backup:   {}", exported.backup);
+        println!("  manifest: {}", exported.manifest);
+        println!("  workspace: {}", path.display());
+        println!("Delete this temporary workspace when you are finished.");
+    }
+    Ok(ExitCode::SUCCESS)
 }
 
 fn print_json(value: &impl Serialize) -> Result<()> {

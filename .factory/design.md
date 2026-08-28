@@ -81,3 +81,6 @@ reveals are removed; state changes remain immediate and fully visible.
   asset, generated 2026-08-27; no third-party source material.
 - Small arrows, lock marks, and terminal ornaments are hand-built in CSS from
   lines and rectangles. They are decorative and do not replace semantic text.
+- `site/public/social-card.png` and `site/public/apple-touch-icon.png` are
+  project-owned crops derived locally from `guarded-handoff.webp` with
+  ImageMagick; no new source material or third-party asset was introduced.

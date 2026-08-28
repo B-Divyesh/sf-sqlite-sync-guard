@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { cp, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,7 +18,7 @@ await cp(builtSite, releaseB, { recursive: true });
 
 const bIndex = join(releaseB, "index.html");
 await writeFile(bIndex, (await readFile(bIndex, "utf8"))
-  .replace("SQLite Sync Guard — preflight SQLite before folder sync", "SQLite Sync Guard update B"));
+  .replace("SQLite Sync Guard — check SQLite files before sync", "SQLite Sync Guard update B"));
 const releaseAWorker = await writeServiceWorker(releaseA);
 const releaseBWorker = await writeServiceWorker(releaseB);
 assert.notEqual(releaseAWorker.version, releaseBWorker.version, "test releases must receive distinct cache revisions");
@@ -61,14 +61,17 @@ const server = createServer(async (request, response) => {
     });
     response.end(body);
   } catch {
-    response.writeHead(404, securityHeaders);
-    response.end("not found");
+    const body = await readFile(join(activeRelease, "404.html"));
+    response.writeHead(404, { ...securityHeaders, "content-type": "text/html; charset=utf-8" });
+    response.end(body);
   }
 });
 await new Promise((resolveListen) => server.listen(0, "127.0.0.1", resolveListen));
 const address = server.address();
 assert(address && typeof address !== "string");
 const baseURL = `http://127.0.0.1:${address.port}`;
+const evidence = resolve(here, "../.factory/evidence");
+await mkdir(evidence, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 try {
@@ -83,26 +86,28 @@ try {
 
   const firstResponse = await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
   assert.equal(firstResponse?.status(), 200);
-  assert.equal(await page.title(), "SQLite Sync Guard — preflight SQLite before folder sync");
+  assert.equal(await page.title(), "SQLite Sync Guard — check SQLite files before sync");
   assert.equal(await page.locator("h1").count(), 1);
   assert.equal(await page.locator("main").count(), 1);
   assert.match(firstResponse?.headers()["content-security-policy"] ?? "", /default-src 'self'/);
   assert.equal(firstResponse?.headers()["x-content-type-options"], "nosniff");
   assert.equal(externalRequests.length, 0, `unexpected outbound request: ${externalRequests.join(", ")}`);
   assert.equal(await page.locator('a[href*="/releases"]').count(), 0, "site must not offer unavailable releases");
-  assert.equal(await page.getByRole("link", { name: "Install from source" }).count(), 2);
+  assert.equal(await page.getByRole("link", { name: "Try it with sample data" }).count(), 1);
+  assert.equal(await page.locator("[data-update-toast]").isHidden(), true);
 
   await page.keyboard.press("Tab");
   await expectActive(page, ".skip-link");
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.activeElement?.id === "main");
-  const safeFixture = page.getByRole("button", { name: "Closed set" });
+  const safeFixture = page.getByRole("button", { name: "Show safe sample" });
   await safeFixture.focus();
-  await page.keyboard.press("Space");
+  await safeFixture.press("Space");
+  await page.waitForFunction(() => document.querySelector('[data-fixture="safe"]')?.getAttribute("aria-pressed") === "true");
   assert.equal(await safeFixture.getAttribute("aria-pressed"), "true");
-  await assertText(page, "[data-terminal-status]", /Exit 0 · safe to copy/);
+  await assertText(page, "[data-terminal-status]", /Safe scan · ready to copy/);
 
-  for (const route of ["/", "/privacy/", "/terms/"]) {
+  for (const route of ["/", "/demo/", "/privacy/", "/terms/", "/missing-page"]) {
     await page.goto(`${baseURL}${route}`, { waitUntil: "networkidle" });
     await page.addScriptTag({ url: `${baseURL}/axe-test.js` });
     const results = await page.evaluate(async () => axe.run(document, {
@@ -111,15 +116,24 @@ try {
     assert.deepEqual(results.violations, [], `axe violations at ${route}: ${JSON.stringify(results.violations)}`);
   }
 
+  await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
+  await page.screenshot({ path: join(evidence, "demo-desktop.png"), fullPage: true });
+  await page.getByRole("button", { name: "Show safe sample" }).click();
+  assert.equal(await page.evaluate(() => localStorage.getItem("demo:sqlite-sync-guard:fixture")), "safe");
+  await page.getByRole("button", { name: "Reset demo" }).click();
+  assert.equal(await page.evaluate(() => localStorage.getItem("demo:sqlite-sync-guard:fixture")), null);
+  await assertText(page, "[data-terminal-status]", /Unsafe scan · do not copy/);
+
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
   const mobile = await mobileContext.newPage();
   await mobile.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+  await mobile.screenshot({ path: join(evidence, "home-mobile-390.png"), fullPage: true });
   assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, "390px viewport must not overflow horizontally");
   assert.ok(Number.parseFloat(await mobile.locator(".lede").evaluate((element) => getComputedStyle(element).fontSize)) >= 16,
     "mobile body text must be at least 16px");
   await mobileContext.close();
 
-  await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+  await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   assert.match(await page.evaluate(async () => (await caches.keys()).join(",")), new RegExp(releaseAWorker.version));
 
@@ -143,7 +157,8 @@ try {
   await page.waitForTimeout(100);
   await context.setOffline(true);
   await page.reload({ waitUntil: "domcontentloaded" });
-  assert.equal(await page.title(), "SQLite Sync Guard update B", "activated worker must serve updated shell offline");
+  assert.equal(await page.title(), "Demo — SQLite Sync Guard", "activated worker must serve demo shell offline");
+  await page.getByRole("button", { name: "Show safe sample" }).click();
   const cacheNames = await page.evaluate(async () => caches.keys());
   assert.deepEqual(cacheNames, [`sqlite-sync-guard-${releaseBWorker.version}`], "activation must delete the old release cache");
   assert.deepEqual(pageErrors, [], `browser errors: ${pageErrors.join("; ")}`);

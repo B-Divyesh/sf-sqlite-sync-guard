@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://sqlite-sync-guard.sociobot.in/sitemap.xml

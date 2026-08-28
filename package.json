@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite site --host 0.0.0.0",
     "test": "cargo test --all-targets && cargo test --doc && npm run test:site",
+    "test:claims": "node site/test-claims.mjs",
     "test:site": "node site/test-site.mjs && node site/test-pwa.mjs",
     "test:browser": "node site/test-browser.mjs",
     "check": "tsc --noEmit && cargo fmt --check && cargo clippy --all-targets -- -D warnings",
