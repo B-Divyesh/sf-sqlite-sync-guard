@@ -1,57 +1,38 @@
-# Handoff — perfection loop polish 2
+# Handoff — adversarial review 3
 
-Work order: `sqlite-sync-guard-polish-2`
-Base reviewed: `3dd4c7ab2762dcbe177940482d4573a3a3febe83`
-Repair commit: `9a6ae88fc939cc52b1910f1b4c1fca7cbb73de64`
+Work order: `sqlite-sync-guard-review-3`
+
+Reviewed commit: `e58a0a792b8593ecd919ae5aa5d3d5720c71b78f`
+
 Live URL: <https://sqlite-sync-guard.sociobot.in>
 
 ## Delivered
 
-- Replaced the hand-written browser terminal transcript with a self-hosted SVG generated from the real `sqlite-sync-guard demo` command. Its text companion normalizes only the random temporary workspace path.
-- Made the CLI demo consume `examples/sample.sql`, expose sample identifiers through `demo --json`, and rebuilt CLI claim tests around fresh demo workspaces.
-- Preserved the one-click `?demo=1` path, banner, reset/start-real cleanup, isolated `demo:` namespace, offline demo, and the risograph visual system.
-- Fixed forward full-page route focus/announcement and completed the 404 metadata plus shared header shell.
-- Removed unsupported README/privacy promises and added the recording claim. Catalog description remains verb-first and under 120 characters.
+- Wrote `.factory/review-3.md` with a **FAIL** verdict, 13 blocking prior-ID
+  regressions/incomplete fixes, four new findings, full landing/README copy
+  counts, all-claims results, demo/privacy evidence, route/accessibility checks,
+  and a finding-by-finding audit of reviews 1 and 2.
+- Did not modify product code or deployment state.
 
-## Verification
+## Verification performed
 
-Executed locally from this checkout:
+- Cold Chromium captures at 390 × 844 and 1440 × 900 before scrolling.
+- One-click live demo, demo/real storage sentinels, Reset, Start for real,
+  same-origin request interception, service-worker offline reload, and a CLI
+  demo from an empty temporary directory.
+- Every `.factory/claims.json` command, individually, after `npm ci` in a fresh
+  remote clone at the reviewed SHA. All 14 commands exited zero; the review
+  records where passing tests do not assert their complete assigned claims.
+- Live route/metadata/link crawl, designed 404, focus and Back behavior,
+  axe-core 4.11.0 on every route, and `/opt/fleet/lib/verify-url.sh`.
+- Local `npm test`, `npm run check`, `npm run build`, and
+  `npm run check:site`; all passed and `dist/site` was produced.
 
-```sh
-npm ci
-npm run check
-npm test
-npm run build
-npm run check:site
-npm run test:browser
-npm run test:claims
-cargo package --locked --allow-dirty
-```
+## Known gaps / next steps
 
-The browser suite passed desktop and 390px mobile checks, keyboard route focus,
-immediate axe checks, route metadata and links, same-origin request checks,
-demo reset, offline reload, and service-worker A→B update. Generated screenshots:
-`.factory/evidence/home-mobile-390.png` and `.factory/evidence/demo-desktop.png`.
-
-Every registry entry passed through `npm run test:claims`; the CLI entries begin
-from fresh `demo --json` workspaces. The build produced `dist/site`, and the
-release CLI was packaged with `cargo package --locked --allow-dirty`.
-
-## Deployment
-
-Pushed `main` through `6643f97`, then deployed `dist/site` to the configured
-production Azure Static Web App `sf-sqlite-sync-guard` in resource group
-`sociobot` with the work-order deployment token. The deployment completed at
-`https://black-meadow-0553a8a0f.7.azurestaticapps.net` and the custom domain
-served the new assets at 2026-08-28 12:24 UTC.
-
-Cold Chromium checks on `/?cold=polish2`, `/demo/?cold=polish2`,
-`/privacy/?cold=polish2`, `/terms/?cold=polish2`, and
-`/missing-polish-2?cold=polish2` returned 200, 200, 200, 200, and 404.
-Each had a title, language, one main, one h1, zero console errors, and zero
-axe WCAG A/AA violations. The 404 exposed its full shared shell and metadata.
-No infrastructure, DNS, or billing changes were made.
-
-## Known gaps
-
-None.
+The product is not acceptance-ready. Fix the blocking findings in
+`.factory/review-3.md`, especially home/Commands focus, Back scroll
+restoration, the “prevents” overclaim, and incomplete claim registrations and
+assertions. Then address the demo transcript, README heading, deployment docs,
+and registry-completeness wording, and repeat the full review from a fresh
+clone and browser context.
