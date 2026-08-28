@@ -2,7 +2,7 @@
 
 Work order: `sqlite-sync-guard-polish-2`
 Base reviewed: `3dd4c7ab2762dcbe177940482d4573a3a3febe83`
-Repair commit: recorded after commit/push
+Repair commit: `9a6ae88fc939cc52b1910f1b4c1fca7cbb73de64`
 Live URL: <https://sqlite-sync-guard.sociobot.in>
 
 ## Delivered

@@ -1,6 +1,6 @@
 # Perfection loop polish 2
 
-Candidate: `3dd4c7ab2762dcbe177940482d4573a3a3febe83`. Review: `3d12f36aae31777f0190bdc227cf6eddf639d2d1`.
+Candidate: `3dd4c7ab2762dcbe177940482d4573a3a3febe83`. Review: `3d12f36aae31777f0190bdc227cf6eddf639d2d1`. Repair: `9a6ae88fc939cc52b1910f1b4c1fca7cbb73de64`.
 
 ## Finding map
 
