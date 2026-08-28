@@ -1,51 +1,75 @@
-# Handoff — adversarial review 1
+# Handoff — perfection loop polish 1
 
-Work order: `sqlite-sync-guard-review-1`
-
-Reviewed commit: `1845efbf64cc34127ab99a5cb133791cc38b1b18`
-
-Live URL: `https://sqlite-sync-guard.sociobot.in`
-Date: 2026-08-28
+Work order: `sqlite-sync-guard-polish-1`  
+Repair commit: `150db5032d3eb725f1a95e72bea0fe80d8679537`  
+Live URL: <https://sqlite-sync-guard.sociobot.in>  
+Deployed: 2026-08-28
 
 ## Outcome
 
-**FAIL.** The complete report is in `.factory/review-1.md`. No product code was
-changed.
+All findings F-1-1 through F-1-43 in `.factory/review-1.md` are resolved. The complete finding-to-change-to-evidence map is in `.factory/polish-1.md`.
 
-Primary blockers are the unclear cold first screen, missing one-click CLI demo
-and sandbox, missing `.factory/claims.json` and tagged claim tests, unbranded
-Azure `/demo`/404 routing, a legal-route skip-link focus regression, and
-transient sub-AA contrast during the initial text reveal.
+The product remains a Rust CLI with a Vite static documentation site. Its risograph field-manual identity, original art, paper palette, and print interaction grammar remain intact.
 
-## Verification performed
+## Delivered
 
-- Fresh 390×844 and 1440×900 live browser contexts, before scrolling.
-- Full landing/README copy inventory with word counts and proposed rewrites.
-- `/demo`, `/?demo=1`, fixture controls, storage state, request interception,
-  service-worker offline reload, Back behavior, skip links, reduced motion,
-  touch targets, console, metadata, 404, and link crawl.
-- `/opt/fleet/lib/verify-url.sh` against the live site: passed its basic checks.
-- axe-core 4.11.0 through Playwright on `/`, `/privacy/`, and `/terms/`:
-  steady-state clean; immediate-load home found the contrast defect documented
-  as F-1-28. The standalone axe CLI was attempted but its webdriver integration
-  errored, so the same engine was executed through Playwright.
-- Fresh clone at the reviewed SHA: `npm ci`, `npm test`, `npm run build`,
-  `npm run check:site`, and `npm run test:browser` all passed.
-- `sqlite-sync-guard demo` and `sqlite-sync-guard --demo` in an empty temporary
-  directory both failed as unsupported, confirming the demo blocker.
-- Historical handoff/verification findings were rechecked. PWA cache revisioning
-  and removal of unavailable binary CTAs are fixed. Skip-link focus is fixed
-  only on home and remains broken on Privacy and Terms.
+- Replaced the first screen with a plain job, named audience, one-click sample action, expected result, and three short facts.
+- Added `sqlite-sync-guard demo`. Each run creates unique temporary SQLite samples, runs the production scanner and exporter, and prints its workspace.
+- Added `/demo/` and `?demo=1`, a persistent isolation banner, demo-only storage namespace, reset, and start-real exit.
+- Added `.factory/claims.json` with 14 executable claim tests and the `npm run test:claims` runner.
+- Added consistent `/`, `/demo/`, `/privacy/`, `/terms/`, and branded 404 shells with focus handling, route titles, canonical/social metadata, self-hosted social art, robots, and sitemap.
+- Rewrote landing, CLI help, README, errors, buttons, headings, and policy copy in plain words. Output terminology is now “transfer backup” and “manifest.”
+- Removed text opacity animation, fixed first-visit update prompting, preserved 390 px layout, and kept visible focus and reduced-motion behavior.
 
-## Known limits
+## Clean-clone verification
 
-- No claim tests could be run because the required claims registry is absent.
-- This review did not modify or deploy the product, per the reviewer work order.
-- The standalone axe CLI failure is a tool integration issue; the equivalent
-  local axe engine completed through Playwright and its result is recorded.
+Fresh clone: `/tmp/sqlite-sync-guard-clean-MUJpJ3`, detached from local state at repair commit.
 
-## Next step
+All commands passed:
 
-Repair every finding in `.factory/review-1.md`, add the real demo and claims
-contract first, deploy, and rerun the entire adversarial checklist from a fresh
-browser and clean clone.
+```sh
+npm ci
+npm test
+npm run check
+npm run build
+npm run test:browser
+npm run test:claims
+npm audit --omit=dev
+cargo package --locked
+```
+
+Evidence:
+
+- Rust: 9 active unit tests, 6 CLI integration tests, and 1 doctest passed. The ignored helper is executed by its cross-process parent.
+- Claims: all 14 registry entries passed from the fresh clone, including live-WAL export, all journal types, checksum/integrity, overwrite, ignore rules, isolation, privacy, reset, and offline operation.
+- Browser: desktop and 390 px mobile, keyboard activation, immediate/steady axe, same-origin requests, service-worker A→B update, and offline demo reload passed.
+- Build: 4.33 KB JavaScript and 13.16 KB CSS uncompressed; hero 191.9 KB and mobile hero 36.0 KB.
+- Supply chain: production npm audit found 0 vulnerabilities. `cargo package --locked` verified the publishable crate.
+
+## Deployment and cold live checks
+
+The factory static deploy completed successfully to the existing Azure Static Web App. The custom domain returned HTTPS 200.
+
+- `/`, `/demo/`, `/?demo=1`, `/privacy/`, `/terms/`, `/robots.txt`, and `/sitemap.xml` passed. An unknown route returned the branded page with HTTP 404.
+- A fresh Chromium context followed `?demo=1` to `/demo/`, changed and reset the sample, and confirmed the demo key was removed.
+- All four valid routes had one h1, one main, working skip focus, no mobile overflow, no outbound requests, and no console errors.
+- Live axe found 0 serious or critical issues on all valid routes and the 404.
+- A fresh service-worker context reloaded `/demo/` offline and operated the sample.
+- `/opt/fleet/lib/verify-url.sh` passed with title, `lang=en`, one h1, main, alt text, zero console errors, and an 857 ms cold load.
+- Live Lighthouse desktop: Performance 100, Accessibility 100, Best Practices 100, SEO 100.
+
+Evidence is in `.factory/evidence/`, including live desktop/mobile/demo screenshots, `verify.json`, and `lighthouse.json`.
+
+## Run and publish
+
+```sh
+cargo run -- demo
+npm run dev
+cargo package --locked
+```
+
+The factory owns registry publication. No crate was published from this worker.
+
+## Known gaps
+
+None found after the final cold live pass.
