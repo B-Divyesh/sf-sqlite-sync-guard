@@ -7,7 +7,7 @@ const mobileImage = statSync(new URL("./public/guarded-handoff-600.webp", import
 const checks = [
   [/<html lang="en">/, "document language"],
   [/<title>[^<]+<\/title>/, "page title"],
-  [/<main id="main">/, "main landmark"],
+  [/<main id="main" tabindex="-1">/, "focusable main landmark"],
   [/<h1[\s>]/g, "exactly one h1", 1],
   [/<img[^>]+alt="[^"]+"/, "meaningful hero alt"],
   [/class="skip-link"/, "skip link"],

@@ -80,10 +80,14 @@ Requirements: Rust 1.85+, Node.js 20+, and npm 10+.
 ```sh
 npm install
 npm test
+npm run check
 npm run build
 ```
 
-`npm test` runs the Rust unit/integration suite and the site checks.
+`npm test` runs the Rust unit/integration suite and deterministic site/PWA
+checks. `npm run test:browser` runs the pinned Chromium regression for the
+desktop and 390px mobile shells, keyboard flow, axe accessibility, no-outbound
+requests, and an online service-worker update followed by an offline reload.
 `npm run build` produces the release binary and the static site at
 `dist/site/index.html`. To work on the docs site, run `npm run dev`.
 

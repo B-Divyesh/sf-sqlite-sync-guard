@@ -7,12 +7,17 @@
     "dev": "vite site --host 0.0.0.0",
     "test": "cargo test --all-targets && cargo test --doc && npm run test:site",
     "test:site": "node site/test-site.mjs && node site/test-pwa.mjs",
+    "test:browser": "node site/test-browser.mjs",
+    "check": "tsc --noEmit && cargo fmt --check && cargo clippy --all-targets -- -D warnings",
     "build": "npm run build:cli && npm run build:site",
     "build:cli": "cargo build --release --locked",
     "build:site": "vite build --config vite.config.js && node site/pwa-build.mjs",
     "check:site": "node site/check-dist.mjs"
   },
   "devDependencies": {
+    "axe-core": "4.11.0",
+    "playwright": "1.58.2",
+    "typescript": "5.9.3",
     "vite": "7.3.6"
   }
 }
