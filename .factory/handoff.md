@@ -76,12 +76,15 @@ npm audit --omit=dev
   text and documented exit codes.
 - `npm audit --omit=dev` reported 0 production vulnerabilities.
 
-Before this repair push, the configured live URL was checked for identity and
-response policy: it served the repaired source-install shell, its generated
-digest worker, no release CTA, self-only CSP, HSTS, `nosniff`, referrer policy,
-and permissions policy. The static deployment is triggered by the committed
-`main` branch using `site/public/staticwebapp.config.json`; live identity is
-rechecked after the push below.
+The configured static deployment was triggered by pushing `e41e20a` to `main`
+using `site/public/staticwebapp.config.json`. The remote branch resolves to that
+commit. A 40-second post-push live poll still returned the previous static
+revision (worker cache `sqlite-sync-guard-9cc337e60b0f8de7`, without the new
+focusable-main markup), so the hosting platform has not yet picked up this
+deployment. That prior live revision did correctly serve the source-install
+shell, no release CTA, self-only CSP, HSTS, `nosniff`, referrer policy, and
+permissions policy. Recheck the live revision after the deployer completes;
+the local Chromium regression verifies the complete deployed-shell behavior.
 
 ## Run and publish
 
