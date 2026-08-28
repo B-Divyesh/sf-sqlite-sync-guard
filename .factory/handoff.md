@@ -39,12 +39,19 @@ release CLI was packaged with `cargo package --locked --allow-dirty`.
 
 ## Deployment
 
-The repository contains no worker-side deployment command or credentials. The
-static work order deploys from `main`; push the repair commit, then verify the
-live URL cold before accepting it. No infrastructure, DNS, or billing changes
-were made.
+Pushed `main` through `6643f97`, then deployed `dist/site` to the configured
+production Azure Static Web App `sf-sqlite-sync-guard` in resource group
+`sociobot` with the work-order deployment token. The deployment completed at
+`https://black-meadow-0553a8a0f.7.azurestaticapps.net` and the custom domain
+served the new assets at 2026-08-28 12:24 UTC.
+
+Cold Chromium checks on `/?cold=polish2`, `/demo/?cold=polish2`,
+`/privacy/?cold=polish2`, `/terms/?cold=polish2`, and
+`/missing-polish-2?cold=polish2` returned 200, 200, 200, 200, and 404.
+Each had a title, language, one main, one h1, zero console errors, and zero
+axe WCAG A/AA violations. The 404 exposed its full shared shell and metadata.
+No infrastructure, DNS, or billing changes were made.
 
 ## Known gaps
 
-None in the repository repair. The post-push live deployment check is the only
-external step and must be recorded with its resulting commit URL.
+None.

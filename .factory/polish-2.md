@@ -34,4 +34,4 @@ Candidate: `3dd4c7ab2762dcbe177940482d4573a3a3febe83`. Review: `3d12f36aae31777f
 
 ## Evidence
 
-`npm run check`, `npm test`, `npm run build`, `npm run check:site`, `npm run test:browser`, `npm run test:claims`, and `cargo package --locked --allow-dirty` pass. Browser evidence: `.factory/evidence/home-mobile-390.png` and `.factory/evidence/demo-desktop.png`.
+`npm run check`, `npm test`, `npm run build`, `npm run check:site`, `npm run test:browser`, `npm run test:claims`, and `cargo package --locked --allow-dirty` pass. Browser evidence: `.factory/evidence/home-mobile-390.png` and `.factory/evidence/demo-desktop.png`. Production cold checks passed at `https://sqlite-sync-guard.sociobot.in/?cold=polish2`, `/demo/?cold=polish2`, `/privacy/?cold=polish2`, `/terms/?cold=polish2`, and `/missing-polish-2?cold=polish2` (200, 200, 200, 200, 404; zero axe violations and console errors).
