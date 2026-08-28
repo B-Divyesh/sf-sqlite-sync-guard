@@ -79,9 +79,11 @@ try {
   const page = await context.newPage();
   const pageErrors = [];
   const externalRequests = [];
+  const sameOriginRequests = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("request", (request) => {
     if (!request.url().startsWith(baseURL)) externalRequests.push(request.url());
+    else sameOriginRequests.push(request.url());
   });
 
   const firstResponse = await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
@@ -94,28 +96,65 @@ try {
   assert.equal(externalRequests.length, 0, `unexpected outbound request: ${externalRequests.join(", ")}`);
   assert.equal(await page.locator('a[href*="/releases"]').count(), 0, "site must not offer unavailable releases");
   assert.equal(await page.getByRole("link", { name: "Try it with sample data" }).count(), 1);
+  assert.equal(await page.getByRole("link", { name: "Try it with sample data" }).getAttribute("href"), "/?demo=1");
   assert.equal(await page.locator("[data-update-toast]").isHidden(), true);
+  await page.screenshot({ path: join(evidence, "polish-4-home-desktop.png"), fullPage: true });
 
   await page.keyboard.press("Tab");
   await expectActive(page, ".skip-link");
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.activeElement?.id === "main");
 
-  const queryDemo = await page.goto(`${baseURL}/?demo=1`, { waitUntil: "networkidle" });
-  assert.equal(queryDemo?.status(), 200);
+  await page.evaluate(() => {
+    localStorage.setItem("sqlite-sync-guard:real", "private-real-storage-sentinel");
+    localStorage.setItem("demo:sqlite-sync-guard:pending", "demo-only-value");
+  });
+  await page.getByRole("link", { name: "Try it with sample data" }).click();
   await page.waitForURL(`${baseURL}/demo/`);
+  await page.waitForLoadState("networkidle");
+  assert.ok(sameOriginRequests.includes(`${baseURL}/?demo=1`), "the first-screen action must enter through the exact ?demo=1 URL");
   assert.equal(await page.getByText("Demo — sample data, nothing is saved").count(), 1);
   await page.waitForFunction(() => document.querySelector("[data-demo-transcript]")?.textContent?.includes("active-session.db"));
   assert.match(await page.locator("[data-demo-transcript]").textContent(), /active-session\.db/);
+  assert.doesNotMatch(await page.locator("body").innerText(), /private-real-storage-sentinel/, "demo must not render normal-storage data");
+  assert.equal(await page.evaluate(() => localStorage.getItem("sqlite-sync-guard:real")), "private-real-storage-sentinel");
 
   assert.equal(await page.locator('img[src="/demo-recording.svg"]').count(), 1);
 
-  for (const route of ["/", "/demo/", "/privacy/", "/terms/", "/missing-page"]) {
-    await page.goto(`${baseURL}${route}`, { waitUntil: "networkidle" });
+  const routes = [
+    ["/", 200, "SQLite Sync Guard — check SQLite files before sync", "https://sqlite-sync-guard.sociobot.in/"],
+    ["/demo/", 200, "Demo — SQLite Sync Guard", "https://sqlite-sync-guard.sociobot.in/demo/"],
+    ["/privacy/", 200, "Privacy — SQLite Sync Guard", "https://sqlite-sync-guard.sociobot.in/privacy/"],
+    ["/terms/", 200, "Terms — SQLite Sync Guard", "https://sqlite-sync-guard.sociobot.in/terms/"],
+    ["/missing-page", 404, "Page not found — SQLite Sync Guard", null]
+  ];
+  for (const [route, status, title, canonical] of routes) {
+    const response = await page.goto(`${baseURL}${route}`, { waitUntil: "networkidle" });
+    assert.equal(response?.status(), status, `HTTP status at ${route}`);
+    assert.equal(await page.title(), title, `title at ${route}`);
+    assert.equal(await page.locator("html").getAttribute("lang"), "en", `language at ${route}`);
+    assert.equal(await page.locator("h1").count(), 1, `one h1 at ${route}`);
+    assert.equal(await page.locator("main").count(), 1, `main landmark at ${route}`);
+    assert.equal(await page.locator("header").count(), 1, `header at ${route}`);
+    assert.equal(await page.locator("footer").count(), 1, `footer at ${route}`);
     assert.equal(await page.locator('meta[name="theme-color"]').count(), 1, `theme color missing at ${route}`);
+    const description = await page.locator('meta[name="description"]').getAttribute("content");
+    assert.ok(description && description.length <= 155, `plain metadata description at ${route}`);
     assert.equal(await page.locator('meta[property="og:title"]').count(), 1, `Open Graph title missing at ${route}`);
+    assert.equal(await page.locator('meta[property="og:description"]').count(), 1, `Open Graph description missing at ${route}`);
+    assert.equal(await page.locator('meta[property="og:image"]').count(), 1, `Open Graph image missing at ${route}`);
     assert.equal(await page.locator('meta[name="twitter:title"]').count(), 1, `Twitter title missing at ${route}`);
+    assert.equal(await page.locator('link[rel="icon"]').count(), 1, `favicon missing at ${route}`);
+    assert.equal(await page.locator('link[rel="apple-touch-icon"]').count(), 1, `Apple icon missing at ${route}`);
+    assert.equal(await page.locator('link[rel="manifest"]').count(), 1, `manifest missing at ${route}`);
+    if (canonical) assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), canonical, `canonical at ${route}`);
+    else assert.equal(await page.locator('link[rel="canonical"]').count(), 0, "404 must not declare a canonical page");
     assert.equal(await page.getByRole("link", { name: "Commands" }).count(), 1, `shared Commands link missing at ${route}`);
+    assert.ok(await page.getByRole("link", { name: "Privacy", exact: true }).count() >= 1, `Privacy link missing at ${route}`);
+    assert.ok(await page.getByRole("link", { name: "Terms", exact: true }).count() >= 1, `Terms link missing at ${route}`);
+    await page.locator(".skip-link").focus();
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.activeElement?.id === "main");
     await page.addScriptTag({ url: `${baseURL}/axe-test.js` });
     const results = await page.evaluate(async () => axe.run(document, {
       runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] }
@@ -126,7 +165,7 @@ try {
   assert.equal(externalRequests.length, 0, `unexpected outbound request: ${externalRequests.join(", ")}`);
 
   await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
-  await page.screenshot({ path: join(evidence, "demo-desktop.png"), fullPage: true });
+  await page.screenshot({ path: join(evidence, "polish-4-demo-desktop.png"), fullPage: true });
   await page.evaluate(() => localStorage.setItem("sqlite-sync-guard:real", "keep"));
   await page.evaluate(() => localStorage.setItem("demo:sqlite-sync-guard:temporary-note", "changed"));
   await page.getByRole("button", { name: "Reset demo" }).click();
@@ -144,10 +183,16 @@ try {
   }
 
   await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
+  await page.evaluate(() => {
+    localStorage.setItem("sqlite-sync-guard:real", "keep-after-demo");
+    localStorage.setItem("demo:sqlite-sync-guard:discard", "discard-me");
+  });
   await page.getByRole("link", { name: "Start for real" }).click();
   await page.waitForLoadState("networkidle");
   assert.equal(await page.evaluate(() => document.activeElement?.id), "hero-title", "Start for real must focus the home heading");
   assert.match(await page.locator("[data-route-status]").innerText(), /Check SQLite files before folder sync/);
+  assert.equal(await page.evaluate(() => localStorage.getItem("demo:sqlite-sync-guard:discard")), null);
+  assert.equal(await page.evaluate(() => localStorage.getItem("sqlite-sync-guard:real")), "keep-after-demo");
 
   await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
   await page.getByRole("link", { name: "SQLite Sync Guard home" }).click();
@@ -163,10 +208,31 @@ try {
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
   const mobile = await mobileContext.newPage();
   await mobile.goto(`${baseURL}/`, { waitUntil: "networkidle" });
-  await mobile.screenshot({ path: join(evidence, "home-mobile-390.png"), fullPage: true });
+  await mobile.screenshot({ path: join(evidence, "polish-4-home-mobile-390.png"), fullPage: true });
   assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, "390px viewport must not overflow horizontally");
   assert.ok(Number.parseFloat(await mobile.locator(".lede").evaluate((element) => getComputedStyle(element).fontSize)) >= 16,
     "mobile body text must be at least 16px");
+  for (const selector of ["h1", ".hero-actions", ".plain-facts"]) {
+    const box = await mobile.locator(selector).boundingBox();
+    assert.ok(box && box.y + box.height <= 844, `${selector} must be visible on the first 390px screen`);
+  }
+  await mobile.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });
+  await mobile.screenshot({ path: join(evidence, "polish-4-demo-mobile-390.png"), fullPage: true });
+  assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, "mobile demo must not overflow horizontally");
+  const recording = await mobile.locator(".terminal-recording").boundingBox();
+  assert.ok(recording && recording.y < 844, "the real demo recording must begin on the first mobile screen");
+  for (const route of ["/", "/demo/", "/privacy/", "/terms/", "/missing-page"]) {
+    await mobile.goto(`${baseURL}${route}`, { waitUntil: "networkidle" });
+    assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `mobile route must not overflow: ${route}`);
+    const undersized = await mobile.locator("a, button, summary").evaluateAll((elements) => elements
+      .filter((element) => {
+        const style = getComputedStyle(element);
+        const box = element.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" && box.width > 0 && box.height > 0 && (box.width < 44 || box.height < 44);
+      })
+      .map((element) => ({ text: element.textContent?.trim(), width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height })));
+    assert.deepEqual(undersized, [], `touch targets below 44px at ${route}: ${JSON.stringify(undersized)}`);
+  }
   await mobile.goto(`${baseURL}/privacy/`, { waitUntil: "networkidle" });
   await mobile.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; scrollTo(0, document.documentElement.scrollHeight); });
   await mobile.waitForFunction(() => scrollY > 40);
@@ -181,6 +247,9 @@ try {
   assert.ok(restoredScroll >= privacyScroll - 4, `Back must preserve restored scroll (${restoredScroll} vs ${privacyScroll})`);
   await mobile.goForward({ waitUntil: "networkidle" });
   assert.equal(await mobile.evaluate(() => document.activeElement?.id), "hero-title", "Forward must focus the home heading");
+  await mobile.emulateMedia({ reducedMotion: "reduce" });
+  await mobile.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+  assert.match(await mobile.locator(".hero-art").evaluate((element) => getComputedStyle(element).transform), /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/, "reduced motion must remove the print transform");
   await mobileContext.close();
 
   await page.goto(`${baseURL}/demo/`, { waitUntil: "networkidle" });

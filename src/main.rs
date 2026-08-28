@@ -186,7 +186,7 @@ fn run_demo(json: bool) -> Result<ExitCode> {
             "sample_ids": ["closed-project.db", "active-session.db", "examples/sample.sql"]
         }))?;
     } else {
-        println!("DEMO — isolated sample data; your files were not read or changed.\n");
+        println!("DEMO — bundled sample data; output stays in the workspace printed below.\n");
         print_scan(&report);
         println!("\nTRANSFER BACKUP CREATED");
         println!("  backup:   {}", exported.backup);

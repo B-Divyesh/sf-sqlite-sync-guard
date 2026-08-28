@@ -1,22 +1,29 @@
 [
   {
     "id": "demo-recording",
-    "claim": "The site shows a normalized recording from sqlite-sync-guard demo.",
-    "where": "landing recording, /demo",
+    "claim": "The site shows a normalized recording and readable transcript generated from sqlite-sync-guard demo.",
+    "where": "landing, /demo/",
     "test": "npm run test:claims -- --grep @claim:demo-recording",
     "sandbox": "fresh CLI demo; normalize only its temporary workspace path and compare it with the shipped recording and readable transcript"
   },
   {
     "id": "demo-isolation",
-    "claim": "The CLI demo creates an isolated temporary workspace and runs the real scan and export paths.",
-    "where": "landing demo, /demo, README",
+    "claim": "The CLI demo runs the real scan and export paths in a unique temporary workspace and leaves its current directory unchanged.",
+    "where": "landing, /demo/, /privacy/, README",
     "test": "npm run test:claims -- --grep @claim:demo-isolation",
-    "sandbox": "two fresh demo runs; assert distinct workspaces, unsafe scan, backup, manifest, and untouched current directory"
+    "sandbox": "two fresh demo runs plus a run from a sentinel-filled temporary current directory; assert distinct external workspaces, unsafe scan, backup, manifest, and an unchanged current-directory tree"
+  },
+  {
+    "id": "web-demo-entry",
+    "claim": "One click on the first-screen sample action, including /?demo=1, opens /demo/ with the banner, recording, and isolated demo storage controls.",
+    "where": "landing, /demo/, README",
+    "test": "npm run test:claims -- --grep @claim:web-demo-entry",
+    "sandbox": "fresh browser context; click the exact /?demo=1 action, observe the query request and /demo/ replacement, then assert banner, recording, reset, Start for real, and untouched non-demo storage"
   },
   {
     "id": "unsafe-detection",
     "claim": "The scan warns on WAL, SHM, and rollback-journal files.",
-    "where": "landing, README",
+    "where": "landing, README, catalog description",
     "test": "npm run test:claims -- --grep @claim:unsafe-detection",
     "sandbox": "a fresh demo workspace per sidecar; scan a separately safe copied sample and assert the exact sidecar kind and database"
   },
@@ -43,10 +50,10 @@
   },
   {
     "id": "verified-transfer",
-    "claim": "Export creates an integrity-checked transfer backup and checksum manifest without overwriting unless forced.",
-    "where": "landing, README",
+    "claim": "Export creates an integrity-checked transfer backup and manifest, records the supplied absolute source path, and does not overwrite unless forced.",
+    "where": "landing, /privacy/, README, catalog description",
     "test": "npm run test:claims -- --grep @claim:verified-transfer",
-    "sandbox": "fresh demo workspace; independently run integrity_check, recalculate the checksum and bytes, assert manifest fields, refusal, and forced replacement"
+    "sandbox": "fresh demo workspace; independently run integrity_check, recalculate checksum and bytes, assert every documented manifest field including source, then test refusal and forced replacement"
   },
   {
     "id": "ignore-rules",
@@ -65,28 +72,28 @@
   {
     "id": "offline-demo",
     "claim": "The web demo works after an offline reload.",
-    "where": "offline notice, demo",
+    "where": "landing offline notice, /demo/",
     "test": "npm run test:claims -- --grep @claim:offline-demo",
     "sandbox": "fresh browser context; load the demo, obtain service-worker control, reload offline, and inspect the demo shell"
   },
   {
     "id": "no-telemetry",
     "claim": "The site loads no third-party scripts, fonts, analytics, or cookies.",
-    "where": "landing, privacy",
+    "where": "landing, /privacy/",
     "test": "npm run test:claims -- --grep @claim:no-telemetry",
     "sandbox": "fresh browser context; intercept every route and demo request, inspect cookies, and audit runtime source for remote endpoints"
   },
   {
     "id": "demo-reset",
     "claim": "Reset demo clears only the isolated demo namespace.",
-    "where": "demo banner",
+    "where": "/demo/ banner",
     "test": "npm run test:claims -- --grep @claim:demo-reset",
     "sandbox": "fresh browser context; seed demo and real sentinels, reset, and assert that only demo-prefixed storage is removed"
   },
   {
     "id": "mit-source",
     "claim": "The project is free software under the MIT License.",
-    "where": "landing, terms, README",
+    "where": "landing, /terms/, README",
     "test": "npm run test:claims -- --grep @claim:mit-source",
     "sandbox": "fresh checkout; inspect LICENSE and Cargo metadata"
   },

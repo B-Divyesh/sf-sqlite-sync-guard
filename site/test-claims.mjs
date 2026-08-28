@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, relative, resolve, sep } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { normalizeDemoOutput, runDemo } from "./demo-recording.mjs";
 
@@ -27,14 +28,38 @@ function build() {
   }
 }
 
-function demo() {
+function demo(options = {}) {
   build();
-  const result = ok(command(["--json", "demo"]), "demo --json");
+  const result = ok(command(["--json", "demo"], options), "demo --json");
   const value = JSON.parse(result.stdout);
   assert.equal(value.demo, true);
   assert.deepEqual(value.sample_ids, ["closed-project.db", "active-session.db", "examples/sample.sql"]);
   assert.ok(existsSync(value.workspace), "demo workspace must exist");
   return value;
+}
+
+function snapshotTree(root) {
+  const snapshot = {};
+  const visit = (directory, prefix = "") => {
+    for (const name of readdirSync(directory).sort()) {
+      const path = join(directory, name);
+      const key = prefix ? `${prefix}/${name}` : name;
+      const metadata = lstatSync(path);
+      if (metadata.isDirectory()) {
+        snapshot[`${key}/`] = "directory";
+        visit(path, key);
+      } else {
+        snapshot[key] = readFileSync(path).toString("base64");
+      }
+    }
+  };
+  visit(root);
+  return snapshot;
+}
+
+function isInside(parent, child) {
+  const path = relative(resolve(parent), resolve(child));
+  return path !== "" && path !== ".." && !path.startsWith(`..${sep}`);
 }
 
 function scan(workspace, jsonPosition = "after") {
@@ -120,40 +145,47 @@ function browserCheck(label) {
 
 function assertClaimCoverage() {
   const claims = JSON.parse(readFileSync(".factory/claims.json", "utf8"));
+  assert.ok(Array.isArray(claims) && claims.length > 0, "claims registry must be a non-empty array");
   const ids = new Set(claims.map((claim) => claim.id));
-  const publicStatements = [
-    ["site/index.html", "Try it with sample data", "demo-isolation"],
-    ["site/index.html", "No telemetry.", "no-telemetry"],
-    ["site/index.html", "Warns before unsafe copies", "unsafe-detection"],
-    ["site/index.html", "journal files or is in active use", "active-lock-detection"],
-    ["site/index.html", "Scan exits 0 when safe, 2 when unsafe, and 1 on error.", "exit-codes-json"],
-    ["site/index.html", "captures committed data", "live-consistent-transfer"],
-    ["site/index.html", "checks the new backup", "verified-transfer"],
-    ["site/index.html", "Reports database journal files and active use", "active-lock-detection"],
-    ["site/index.html", "Writes a checked", "verified-transfer"],
-    ["site/index.html", "Preserves other rules.", "ignore-rules"],
-    ["site/index.html", "Rust builds the CLI with SQLite included.", "bundled-sqlite"],
-    ["site/demo/index.html", "generated from the bundled", "demo-recording"],
-    ["site/demo/index.html", "new temporary workspace", "demo-isolation"],
-    ["site/privacy/index.html", "no analytics, cookies", "no-telemetry"],
-    ["README.md", "warns about journal files and active use", "active-lock-detection"],
-    ["README.md", "verified transfer backups and adds sync-client ignore rules", "ignore-rules"],
-    ["README.md", "temporary workspace", "demo-isolation"],
-    ["README.md", "does not need", "bundled-sqlite"],
-    ["README.md", "Exit code", "exit-codes-json"],
-    ["README.md", "SQLite’s backup function", "live-consistent-transfer"],
-    ["README.md", "checks the completed file", "verified-transfer"],
-    ["README.md", "repeated run leaves the file unchanged", "ignore-rules"],
-    ["README.md", "does not change the database", "scan-read-only"],
-    ["README.md", "npm run dev", "dev-server"],
-    ["README.md", "cargo package --locked", "package-output"],
-    ["README.md", "npm run build", "build-output"]
+  assert.equal(ids.size, claims.length, "claim ids must be unique");
+
+  const sources = [
+    ["site/index.html", "landing"],
+    ["site/demo/index.html", "/demo/"],
+    ["site/privacy/index.html", "/privacy/"],
+    ["site/terms/index.html", "/terms/"],
+    ["README.md", "README"]
   ];
-  for (const [file, statement, id] of publicStatements) {
-    assert.ok(readFileSync(file, "utf8").includes(statement), "coverage statement missing: " + file + ": " + statement);
-    assert.ok(ids.has(id), "coverage claim missing: " + id);
+  const annotatedIds = new Set();
+  for (const [file, location] of sources) {
+    const source = readFileSync(file, "utf8");
+    const annotations = [
+      ...source.matchAll(/data-claim="([^"]+)"/g),
+      ...source.matchAll(/<!--\s*claims?:\s*([^>]+?)\s*-->/g)
+    ];
+    assert.ok(annotations.length > 0 || file === "site/404.html", `${file} must enumerate its behavior claims`);
+    for (const annotation of annotations) {
+      for (const id of annotation[1].trim().split(/[\s,]+/)) {
+        assert.ok(ids.has(id), `${file} references unknown claim ${id}`);
+        const claim = claims.find((candidate) => candidate.id === id);
+        assert.match(claim.where.toLowerCase(), new RegExp(location.replaceAll("/", "\\/").toLowerCase()), `${id} must list ${location} in where`);
+        annotatedIds.add(id);
+      }
+    }
   }
-  for (const claim of claims) assert.ok(tests["@claim:" + claim.id], "claim has no tagged test: " + claim.id);
+
+  const catalog = readFileSync(".factory/catalog-description.txt", "utf8").trim();
+  assert.ok(catalog.length <= 120, "catalog description must be at most 120 characters");
+  assert.match(catalog, /^(Check|Create|Find|Scan|Warn)\b/, "catalog description must start with a verb");
+  for (const id of ["unsafe-detection", "verified-transfer"]) {
+    assert.match(claims.find((claim) => claim.id === id).where, /catalog description/i, `${id} must map the catalog description`);
+  }
+
+  for (const claim of claims) {
+    assert.equal(claim.test, `npm run test:claims -- --grep @claim:${claim.id}`, `${claim.id} must expose its exact tagged command`);
+    assert.ok(tests[`@claim:${claim.id}`], `claim has no tagged test: ${claim.id}`);
+    assert.ok(annotatedIds.has(claim.id), `public claim is not annotated in source: ${claim.id}`);
+  }
 }
 
 const tests = {
@@ -164,12 +196,25 @@ const tests = {
     assert.match(readFileSync("site/src/demo-transcript.ts", "utf8"), /active-session\.db/);
   },
   "@claim:demo-isolation": () => {
-    const first = demo();
-    const second = demo();
+    const current = mkdtempSync(join(tmpdir(), "sqlite-sync-guard-claim-cwd-"));
+    mkdirSync(join(current, "private"));
+    writeFileSync(join(current, "do-not-read.txt"), "private current-directory sentinel");
+    writeFileSync(join(current, "private", "keep.bin"), Buffer.from([0, 1, 2, 3, 255]));
+    const before = snapshotTree(current);
+    const first = demo({ cwd: current });
+    const second = demo({ cwd: current });
     assert.notEqual(first.workspace, second.workspace);
+    assert.equal(isInside(current, first.workspace), false, "demo workspace must be outside the current directory");
+    assert.equal(isInside(first.workspace, first.transfer_backup), true, "backup must stay inside demo workspace");
+    assert.equal(isInside(first.workspace, first.manifest), true, "manifest must stay inside demo workspace");
     assert.equal(first.scan.unsafe_count, 1);
     assert.ok(existsSync(first.transfer_backup));
     assert.ok(existsSync(first.manifest));
+    assert.deepEqual(snapshotTree(current), before, "demo must leave the current-directory tree unchanged");
+  },
+  "@claim:web-demo-entry": () => {
+    demo();
+    browserCheck("web demo entry");
   },
   "@claim:unsafe-detection": () => {
     for (const [suffix, kind] of [["-wal", "wal"], ["-shm", "shm"], ["-journal", "journal"]]) {
@@ -260,6 +305,7 @@ const tests = {
     assert.equal(manifest.bytes, statSync(backup).size);
     assert.equal(manifest.integrity_check, "ok");
     assert.equal(manifest.backup_file, "closed-project.backup.sqlite3");
+    assert.equal(manifest.source, realpathSync(join(value.workspace, "closed-project.db")));
     assert.match(manifest.sqlite_version, /^\d+\.\d+\.\d+$/);
     assert.equal(manifest.source_observations.database, "closed-project.db");
     assert.equal(manifest.source_observations.database_present, true);

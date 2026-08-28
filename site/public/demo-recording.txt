@@ -1,4 +1,4 @@
-DEMO — isolated sample data; your files were not read or changed.
+DEMO — bundled sample data; output stays in the workspace printed below.
 
 UNSAFE  active-session.db
         - WAL sidecar present
